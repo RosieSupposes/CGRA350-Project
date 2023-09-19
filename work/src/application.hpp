@@ -7,22 +7,13 @@
 
 // project
 #include "opengl.hpp"
-#include "cgra/cgra_mesh.hpp"
-#include "skeleton_model.hpp"
+#include "cgra/cgra_mesh.hpp" //Is this necessary?
 
+#include "firefly.hpp"
+#include "simple_water.hpp"
+#include "water_sim.hpp"
+#include "tree.hpp"
 
-// Basic model that holds the shader, mesh and transform for drawing.
-// Can be copied and modified for adding in extra information for drawing
-// including textures for texture mapping etc.
-struct basic_model {
-	GLuint shader = 0;
-	cgra::gl_mesh mesh;
-	glm::vec3 color{0.7};
-	glm::mat4 modelTransform{1.0};
-	GLuint texture;
-
-	void draw(const glm::mat4 &view, const glm::mat4 proj);
-};
 
 
 // Main application class
@@ -48,7 +39,29 @@ private:
 	bool m_showWireframe = false;
 
 	// geometry
-	basic_model m_model;
+		//trees
+	int treeCount = 20;
+	GLuint tree_shader = 0;
+	std::vector<tree> trees;
+	
+		//fireflies
+	int fireflyCount = 100;
+	GLuint firefly_shader = 0;
+	std::vector<firefly> fireflies;
+	
+		//water
+	bool water_sim_enabled = false;
+	GLuint basic_water_shader = 0;
+	simple_water basic_water{0};
+	
+		//watersim
+	GLuint water_shader = 0;
+	water_sim water{0};
+
+	
+	void renderFireflies(const glm::mat4 &view, const glm::mat4 proj);
+	void renderTrees(const glm::mat4 &view, const glm::mat4 proj);
+	void renderWater(const glm::mat4 &view, const glm::mat4 proj);
 
 public:
 	// setup

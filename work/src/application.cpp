@@ -10,6 +10,8 @@
 
 // project
 #include "application.hpp"
+
+//Are these necessary?
 #include "cgra/cgra_geometry.hpp"
 #include "cgra/cgra_gui.hpp"
 #include "cgra/cgra_image.hpp"
@@ -17,33 +19,58 @@
 #include "cgra/cgra_wavefront.hpp"
 
 
+#include "firefly.hpp"
+#include "simple_water.hpp"
+#include "water_sim.hpp"
+#include "tree.hpp"
+
+
 using namespace std;
 using namespace cgra;
 using namespace glm;
 
 
-void basic_model::draw(const glm::mat4 &view, const glm::mat4 proj) {
-	mat4 modelview = view * modelTransform;
-	
-	glUseProgram(shader); // load shader and variables
-	glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(proj));
-	glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(modelview));
-	glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, value_ptr(color));
-
-	mesh.draw(); // draw
-}
-
-
 Application::Application(GLFWwindow *window) : m_window(window) {
 	
-	shader_builder sb;
-    sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
-	sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
-	GLuint shader = sb.build();
+	shader_builder water_sb, tree_sb, firefly_sb, simple_water_sb;
+	
+    water_sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
+	water_sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
+	water_shader = water_sb.build();
+	
+	tree_sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
+	tree_sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
+	tree_shader = tree_sb.build();
+	
+	firefly_sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
+	firefly_sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
+	firefly_shader = firefly_sb.build();
+	
+	simple_water_sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
+	simple_water_sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
+	basic_water_shader = simple_water_sb.build();
+	
+	water = water_sim(water_shader);
 
-	m_model.shader = shader;
-	m_model.mesh = load_wavefront_data(CGRA_SRCDIR + std::string("/res//assets//teapot.obj")).build();
-	m_model.color = vec3(1, 0, 0);
+	for(int t = 0; t < treeCount; t++){
+		float range = 38;
+		vec3 randomPosition = vec3(
+			-(range/2) + range*((float)std::rand())/RAND_MAX,//range between -10 to 10
+			0,
+			-(range/2) + range*((float)std::rand())/RAND_MAX //range between -10 to 10
+		);
+		trees.push_back(tree(tree_shader, translate(mat4(1), randomPosition)));
+	}
+	for(int f = 0; f < fireflyCount; f++){
+		float range = 38;
+		vec3 randomPosition = vec3(
+			-(range/2) + range*((float)std::rand())/RAND_MAX,//range between -10 to 10
+			10 + 10*((float)std::rand())/RAND_MAX, //range between 10 to 20
+			-(range/2) + range*((float)std::rand())/RAND_MAX //range between -10 to 10
+		);
+		fireflies.push_back(firefly(firefly_shader, translate(mat4(1), randomPosition)));
+	}
+	basic_water = simple_water(basic_water_shader);
 }
 
 
@@ -79,8 +106,36 @@ void Application::render() {
 	glPolygonMode(GL_FRONT_AND_BACK, (m_showWireframe) ? GL_LINE : GL_FILL);
 
 
-	// draw the model
-	m_model.draw(view, proj);
+	// draw things
+	renderFireflies(view, proj);
+	renderWater(view, proj);
+	renderTrees(view, proj);
+}
+
+void Application::renderFireflies(const glm::mat4 &view, const glm::mat4 proj){
+	for(firefly ff : fireflies){
+		ff.draw(view, proj);
+	}
+}
+
+
+void Application::renderTrees(const glm::mat4 &view, const glm::mat4 proj){
+	for(tree t : trees){
+		t.draw(view, proj);
+	}
+}
+
+
+
+void Application::renderWater(const glm::mat4 &view, const glm::mat4 proj){
+	if(water_sim_enabled)
+	{
+		water.draw(view, proj);
+	}
+	else
+	{
+		basic_water.draw(view, proj);
+	}
 }
 
 
@@ -96,7 +151,35 @@ void Application::renderGUI() {
 	ImGui::SliderFloat("Pitch", &m_pitch, -pi<float>() / 2, pi<float>() / 2, "%.2f");
 	ImGui::SliderFloat("Yaw", &m_yaw, -pi<float>(), pi<float>(), "%.2f");
 	ImGui::SliderFloat("Distance", &m_distance, 0, 100, "%.2f", 2.0f);
-
+	
+	//OPTIONS
+	ImGui::Text("OPTIONS");
+	ImGui::Checkbox("Water Sim Enabled", &water_sim_enabled);
+	if (ImGui::InputInt("Fireflies", &fireflyCount)) {
+		fireflies.clear();
+		for(int f = 0; f < fireflyCount; f++){
+			float range = 38;
+			vec3 randomPosition = vec3(
+				-(range/2) + range*((float)std::rand())/RAND_MAX,//range between -10 to 10
+				10 + 10*((float)std::rand())/RAND_MAX, //range between 10 to 20
+				-(range/2) + range*((float)std::rand())/RAND_MAX //range between -10 to 10
+			);
+			fireflies.push_back(firefly(firefly_shader, translate(mat4(1), randomPosition)));
+		}
+	}
+	if (ImGui::InputInt("Trees", &treeCount)) {
+		trees.clear();
+		for(int t = 0; t < treeCount; t++){
+			float range = 38;
+			vec3 randomPosition = vec3(
+				-(range/2) + range*((float)std::rand())/RAND_MAX,//range between -10 to 10
+				0,
+				-(range/2) + range*((float)std::rand())/RAND_MAX //range between -10 to 10
+			);
+			trees.push_back(tree(tree_shader, translate(mat4(1), randomPosition)));
+		}
+	}
+	ImGui::Separator();
 	// helpful drawing options
 	ImGui::Checkbox("Show axis", &m_show_axis);
 	ImGui::SameLine();
@@ -106,13 +189,8 @@ void Application::renderGUI() {
 	if (ImGui::Button("Screenshot")) rgba_image::screenshot(true);
 
 	
-	ImGui::Separator();
+	
 
-	// example of how to use input boxes
-	static float exampleInput;
-	if (ImGui::InputFloat("example input", &exampleInput)) {
-		cout << "example input changed to " << exampleInput << endl;
-	}
 
 	// finish creating window
 	ImGui::End();

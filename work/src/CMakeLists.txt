@@ -10,10 +10,14 @@ SET(sources
 	"application.hpp"
 	"application.cpp"
 
-	"skeleton.hpp"
-	"skeleton.cpp"
-	"skeleton_model.hpp"
-	"skeleton_model.cpp"
+	"firefly.hpp"
+	"firefly.cpp"
+	"simple_water.hpp"
+	"simple_water.cpp"
+	"tree.hpp"
+	"tree.cpp"
+	"water_sim.hpp"
+	"water_sim.cpp"
 	
 	"opengl.hpp"
 
