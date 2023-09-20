@@ -2,3 +2,4 @@ output
 .vs
 build/*
 work/default.settings
+.dsstore
