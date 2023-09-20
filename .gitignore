@@ -2,4 +2,4 @@ output
 .vs
 build/*
 work/default.settings
-.dsstore
+.DS_Store
