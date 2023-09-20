@@ -1,3 +1,4 @@
 output
 .vs
-#work/runcmake.sh
+build/*
+work/default.settings

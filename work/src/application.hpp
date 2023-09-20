@@ -9,10 +9,10 @@
 #include "opengl.hpp"
 #include "cgra/cgra_mesh.hpp" //Is this necessary?
 
-#include "firefly.hpp"
-#include "simple_water.hpp"
-#include "water_sim.hpp"
-#include "tree.hpp"
+#include "Fireflies/firefly_cluster.hpp"
+#include "Simple/simple_water.hpp"
+#include "WaterSim/water_sim.hpp"
+#include "Trees/forest.hpp"
 
 
 
@@ -42,12 +42,12 @@ private:
 		//trees
 	int treeCount = 20;
 	GLuint tree_shader = 0;
-	std::vector<tree> trees;
+	forest trees{0};
 	
 		//fireflies
 	int fireflyCount = 100;
 	GLuint firefly_shader = 0;
-	std::vector<firefly> fireflies;
+	firefly_cluster fireflies{0};
 	
 		//water
 	bool water_sim_enabled = false;
@@ -56,12 +56,19 @@ private:
 	
 		//watersim
 	GLuint water_shader = 0;
-	water_sim water{0};
+	water_sim water;
 
 	
 	void renderFireflies(const glm::mat4 &view, const glm::mat4 proj);
 	void renderTrees(const glm::mat4 &view, const glm::mat4 proj);
 	void renderWater(const glm::mat4 &view, const glm::mat4 proj);
+	
+	void simulate();
+	void simulateFireflies();
+	void simulateTrees();
+	void simulateWater();
+	
+	void readSettings();
 
 public:
 	// setup

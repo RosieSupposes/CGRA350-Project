@@ -19,18 +19,14 @@
 #include "cgra/cgra_wavefront.hpp"
 
 
-#include "firefly.hpp"
-#include "simple_water.hpp"
-#include "water_sim.hpp"
-#include "tree.hpp"
-
-
 using namespace std;
 using namespace cgra;
 using namespace glm;
 
 
 Application::Application(GLFWwindow *window) : m_window(window) {
+
+	readSettings();
 	
 	shader_builder water_sb, tree_sb, firefly_sb, simple_water_sb;
 	
@@ -50,26 +46,8 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	simple_water_sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
 	basic_water_shader = simple_water_sb.build();
 	
-	water = water_sim(water_shader);
-
-	for(int t = 0; t < treeCount; t++){
-		float range = 38;
-		vec3 randomPosition = vec3(
-			-(range/2) + range*((float)std::rand())/RAND_MAX,//range between -10 to 10
-			0,
-			-(range/2) + range*((float)std::rand())/RAND_MAX //range between -10 to 10
-		);
-		trees.push_back(tree(tree_shader, translate(mat4(1), randomPosition)));
-	}
-	for(int f = 0; f < fireflyCount; f++){
-		float range = 38;
-		vec3 randomPosition = vec3(
-			-(range/2) + range*((float)std::rand())/RAND_MAX,//range between -10 to 10
-			10 + 10*((float)std::rand())/RAND_MAX, //range between 10 to 20
-			-(range/2) + range*((float)std::rand())/RAND_MAX //range between -10 to 10
-		);
-		fireflies.push_back(firefly(firefly_shader, translate(mat4(1), randomPosition)));
-	}
+	fireflies = firefly_cluster(fireflyCount);
+	trees = forest(treeCount);
 	basic_water = simple_water(basic_water_shader);
 }
 
@@ -104,7 +82,9 @@ void Application::render() {
 	if (m_show_grid) drawGrid(view, proj);
 	if (m_show_axis) drawAxis(view, proj);
 	glPolygonMode(GL_FRONT_AND_BACK, (m_showWireframe) ? GL_LINE : GL_FILL);
-
+	
+	//Simulate things
+	simulate();
 
 	// draw things
 	renderFireflies(view, proj);
@@ -112,25 +92,19 @@ void Application::render() {
 	renderTrees(view, proj);
 }
 
-void Application::renderFireflies(const glm::mat4 &view, const glm::mat4 proj){
-	for(firefly ff : fireflies){
-		ff.draw(view, proj);
-	}
+void Application::renderFireflies(const mat4 &view, const mat4 proj){
+	fireflies.draw(view, proj, firefly_shader);
 }
 
 
-void Application::renderTrees(const glm::mat4 &view, const glm::mat4 proj){
-	for(tree t : trees){
-		t.draw(view, proj);
-	}
+void Application::renderTrees(const mat4 &view, const mat4 proj){
+	trees.draw(view, proj, tree_shader);
 }
 
-
-
-void Application::renderWater(const glm::mat4 &view, const glm::mat4 proj){
+void Application::renderWater(const mat4 &view, const mat4 proj){
 	if(water_sim_enabled)
 	{
-		water.draw(view, proj);
+		water.draw(view, proj, water_shader);
 	}
 	else
 	{
@@ -138,6 +112,26 @@ void Application::renderWater(const glm::mat4 &view, const glm::mat4 proj){
 	}
 }
 
+void Application::simulate(){
+	simulateFireflies();
+	simulateTrees();
+	simulateWater();
+}
+
+void Application::simulateFireflies(){
+	fireflies.simulate();
+}
+
+void Application::simulateTrees(){
+	trees.simulate();
+}
+
+void Application::simulateWater(){
+	if(water_sim_enabled)
+	{
+		water.simulate();
+	}
+}
 
 void Application::renderGUI() {
 
@@ -156,28 +150,10 @@ void Application::renderGUI() {
 	ImGui::Text("OPTIONS");
 	ImGui::Checkbox("Water Sim Enabled", &water_sim_enabled);
 	if (ImGui::InputInt("Fireflies", &fireflyCount)) {
-		fireflies.clear();
-		for(int f = 0; f < fireflyCount; f++){
-			float range = 38;
-			vec3 randomPosition = vec3(
-				-(range/2) + range*((float)std::rand())/RAND_MAX,//range between -10 to 10
-				10 + 10*((float)std::rand())/RAND_MAX, //range between 10 to 20
-				-(range/2) + range*((float)std::rand())/RAND_MAX //range between -10 to 10
-			);
-			fireflies.push_back(firefly(firefly_shader, translate(mat4(1), randomPosition)));
-		}
+		fireflies.reload(fireflyCount);
 	}
 	if (ImGui::InputInt("Trees", &treeCount)) {
-		trees.clear();
-		for(int t = 0; t < treeCount; t++){
-			float range = 38;
-			vec3 randomPosition = vec3(
-				-(range/2) + range*((float)std::rand())/RAND_MAX,//range between -10 to 10
-				0,
-				-(range/2) + range*((float)std::rand())/RAND_MAX //range between -10 to 10
-			);
-			trees.push_back(tree(tree_shader, translate(mat4(1), randomPosition)));
-		}
+		
 	}
 	ImGui::Separator();
 	// helpful drawing options
@@ -240,4 +216,40 @@ void Application::keyCallback(int key, int scancode, int action, int mods) {
 
 void Application::charCallback(unsigned int c) {
 	(void)c; // currently un-used
+}
+
+void Application::readSettings(){
+	// open settings file
+	std::string filename = CGRA_SRCDIR + std::string("//default.settings");
+	ifstream settingsFile(filename);
+	if (!settingsFile.is_open()) {
+		cerr << "Error: could not open " << filename << endl;
+		throw runtime_error("Error: could not open file " + filename);
+	}
+
+	// good() means that failbit, badbit and eofbit are all not set
+	while (settingsFile.good()) {
+
+		// Pull out line from file
+		string line;
+		getline(settingsFile, line);
+		istringstream settingsLine(line);
+
+		// Pull out mode from line
+		string mode;
+		settingsLine >> mode;
+
+		// Reading like this means whitespace at the start of the line is fine
+		// attempting to read from an empty string/line will set the failbit
+		if (settingsLine.good()) {
+			std::string outHolder;
+			if (mode == "water_sim_enabled=") {
+				settingsLine >> water_sim_enabled;
+			}
+			else if (mode == "other_things") {
+				std::string placeHolder;
+				settingsLine >> placeHolder;
+			}
+		}
+	}
 }

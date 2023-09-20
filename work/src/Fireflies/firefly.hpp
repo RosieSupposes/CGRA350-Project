@@ -17,6 +17,6 @@ private:
 	GLuint m_texture;
 
 public:
-    firefly(GLuint shader, glm::mat4 transform);
-	void draw(const glm::mat4 &view, const glm::mat4 &proj);
+    firefly(glm::mat4 transform);
+	void draw(const glm::mat4 &view, const glm::mat4 &proj, GLuint shader);
 };  

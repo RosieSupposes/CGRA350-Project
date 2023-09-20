@@ -10,13 +10,14 @@
 
 class water_sim {
 private:
-    GLuint m_shader = 0;
 	cgra::gl_mesh m_mesh;
     glm::vec3 m_color = glm::vec3(0,0.2f,0.7f);
     glm::mat4 m_modelTransform{1.0};
 	GLuint m_texture;
 
 public:
-    water_sim(GLuint shader);
-	void draw(const glm::mat4 &view, const glm::mat4 &proj);
+    water_sim();
+    void reload();
+    void simulate();
+	void draw(const glm::mat4 &view, const glm::mat4 &proj, GLuint shader);
 };  

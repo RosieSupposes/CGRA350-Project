@@ -9,15 +9,6 @@
 SET(sources
 	"application.hpp"
 	"application.cpp"
-
-	"firefly.hpp"
-	"firefly.cpp"
-	"simple_water.hpp"
-	"simple_water.cpp"
-	"tree.hpp"
-	"tree.cpp"
-	"water_sim.hpp"
-	"water_sim.cpp"
 	
 	"opengl.hpp"
 
@@ -33,8 +24,10 @@ add_executable(${CGRA_PROJECT} ${sources})
 # list your subdirectories here #
 # ----------------------------- #
 add_subdirectory(cgra)
-
-
+add_subdirectory(Fireflies)
+add_subdirectory(Trees)
+add_subdirectory(WaterSim)
+add_subdirectory(Simple)
 
 #########################################################
 # Link and Build Executable
