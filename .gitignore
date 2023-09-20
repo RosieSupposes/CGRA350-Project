@@ -3,3 +3,4 @@ output
 build/*
 work/default.settings
 .DS_Store
+*/.DS_Store
