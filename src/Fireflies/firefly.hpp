@@ -18,16 +18,17 @@ private:
 
 	cgra::gl_mesh m_mesh;
 
-	glm::mat4 m_modelTransform{ 1.0 };
-
 	glm::mat4 m_scale;
 
 
 public:
 	float brightness;
 	glm::vec3 pos;
-	float search_precision;     //guassian distribution, uniform distribution, or distrubuted random number vector
+	glm::vec3 velocity;
 
-	firefly(glm::mat4 transform);
+	glm::vec3 search_precision;     //guassian distribution, uniform distribution, or distrubuted random number vector
+
+	firefly(glm::vec3 pos, float brightness, glm::vec3 sp);
 	void draw(const glm::mat4& view, const glm::mat4& proj, GLuint shader);
+	void setPos(glm::vec3 p);
 };
