@@ -10,7 +10,7 @@
 #include "cgra/cgra_mesh.hpp" //Is this necessary?
 
 #include "Fireflies/firefly_cluster.hpp"
-#include "Simple/simple_water.hpp"
+#include "Simple/basic_model.hpp"
 #include "WaterSim/water_sim.hpp"
 #include "Trees/forest.hpp"
 
@@ -49,10 +49,13 @@ private:
 	GLuint firefly_shader = 0;
 	firefly_cluster fireflies{0};
 	
+	//terrain
+	basic_model terrain;
+	
 		//water
 	bool water_sim_enabled = false;
 	GLuint basic_water_shader = 0;
-	simple_water basic_water{0};
+	basic_model basic_water;
 	
 		//watersim
 	GLuint water_shader = 0;
@@ -62,6 +65,7 @@ private:
 	void renderFireflies(const glm::mat4 &view, const glm::mat4 proj);
 	void renderTrees(const glm::mat4 &view, const glm::mat4 proj);
 	void renderWater(const glm::mat4 &view, const glm::mat4 proj);
+	void renderTerrain(const glm::mat4 &view, const glm::mat4 proj);
 	
 	void simulate();
 	void simulateFireflies();

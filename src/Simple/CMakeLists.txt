@@ -2,8 +2,8 @@
 # Source files
 set(sources	
 
-	"simple_water.hpp"
-	"simple_water.cpp"
+	"basic_model.hpp"
+	"basic_model.cpp"
 
 	"CMakeLists.txt"
 )
