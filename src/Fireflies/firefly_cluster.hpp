@@ -19,6 +19,8 @@ private:
     float absorption = 10.0f;   //between 0.01 and 100
     float max_attraction = 1;   //apparently 1 is good
     float alpha;                //between 0 and 1
+    float max_brightness = 1.0f; 
+    float brightness_step = 0.1f;
     
     void reset_flies(int fireflyCount);
     float relative_brightness(firefly i, firefly j);

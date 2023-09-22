@@ -47,7 +47,21 @@ void firefly_cluster::simulate() {
 	}
 
 	//update brightness
+	for (firefly i : fireflies) {
+		if (i.brightness == max_brightness) {
+			i.brightness = 0;
+		}
+		else {
+			i.brightness += brightness_step;
+		}
 
+		for (firefly j : fireflies) {
+			if (j.brightness == max_brightness) {
+				i.brightness += brightness_step;
+				break;
+			}
+		}
+	}
 }
 
 void firefly_cluster::draw(const mat4& view, const mat4& proj, GLuint shader) {
