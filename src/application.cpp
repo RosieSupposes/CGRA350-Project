@@ -48,7 +48,8 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	
 	fireflies = firefly_cluster(fireflyCount);
 	trees = forest(treeCount);
-	basic_water = simple_water(basic_water_shader);
+	basic_water = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//simple_water.obj"), vec3(0.0,0.9,0.9));
+	terrain = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//land.obj"), scale(mat4(1), vec3(8)));
 }
 
 
@@ -87,6 +88,7 @@ void Application::render() {
 	simulate();
 
 	// draw things
+	renderTerrain(view, proj);
 	renderFireflies(view, proj);
 	renderWater(view, proj);
 	renderTrees(view, proj);
@@ -110,6 +112,10 @@ void Application::renderWater(const mat4 &view, const mat4 proj){
 	{
 		basic_water.draw(view, proj);
 	}
+}
+
+void Application::renderTerrain(const mat4 &view, const mat4 proj){
+	terrain.draw(view, proj);
 }
 
 void Application::simulate(){
@@ -153,7 +159,7 @@ void Application::renderGUI() {
 		fireflies.reload(fireflyCount);
 	}
 	if (ImGui::InputInt("Trees", &treeCount)) {
-		
+		trees.reload(treeCount);
 	}
 	ImGui::Separator();
 	// helpful drawing options

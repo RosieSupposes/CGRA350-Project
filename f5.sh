@@ -2,7 +2,5 @@
 
 mkdir build
 cd build
-cmake ../work
-make
-cd ..
-
+cmake ..
+make VERBOSE=1
