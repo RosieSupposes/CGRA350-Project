@@ -4,6 +4,12 @@ set(sources
 
 	"basic_model.hpp"
 	"basic_model.cpp"
+	
+	"terrain.hpp"
+	"terrain.cpp"
+	
+	"collider.hpp"
+	"collider.cpp"
 
 	"CMakeLists.txt"
 )

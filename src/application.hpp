@@ -7,10 +7,9 @@
 
 // project
 #include "opengl.hpp"
-#include "cgra/cgra_mesh.hpp" //Is this necessary?
 
 #include "Fireflies/firefly_cluster.hpp"
-#include "Simple/basic_model.hpp"
+#include "Other/terrain.hpp"
 #include "WaterSim/water_sim.hpp"
 #include "Trees/forest.hpp"
 
@@ -50,7 +49,7 @@ private:
 	firefly_cluster fireflies{0};
 	
 	//terrain
-	basic_model terrain;
+	terrain m_terrain;
 	
 		//water
 	bool water_sim_enabled = false;

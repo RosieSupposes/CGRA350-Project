@@ -1,4 +1,3 @@
-
 // std
 #include <iostream>
 #include <string>
@@ -49,7 +48,7 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	fireflies = firefly_cluster(fireflyCount);
 	trees = forest(treeCount);
 	basic_water = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//simple_water.obj"), vec3(0.0,0.9,0.9));
-	terrain = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//land.obj"), scale(mat4(1), vec3(8)));
+	m_terrain = terrain(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//land.obj"), scale(mat4(1), vec3(8)));
 }
 
 
@@ -115,7 +114,7 @@ void Application::renderWater(const mat4 &view, const mat4 proj){
 }
 
 void Application::renderTerrain(const mat4 &view, const mat4 proj){
-	terrain.draw(view, proj);
+	m_terrain.draw(view, proj);
 }
 
 void Application::simulate(){
