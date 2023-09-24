@@ -1,5 +1,8 @@
 #pragma once
 
+//std
+#include <random>
+
 // glm
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -35,6 +38,12 @@ private:
     
     cylinder_model model;
     std::vector<cylinder_model> cylinders;
+    
+    std::vector<std::string> rules;
+    std::string axiom = "EF";
+    int depth = 1;
+    int resolution = 3;
+    std::mt19937 randomNumberGenerator;
 
 public:
     tree(glm::mat4 transform);

@@ -7,12 +7,10 @@
 using namespace glm;
 
 tree::tree(glm::mat4 transform){
-    //static cgra::gl_mesh sharedMesh = cgra::load_wavefront_data(CGRA_SRCDIR + std::string("/res//assets//teapot.obj")).build();
-    //m_modelTransform = transform * scale(mat4(1), vec3(0.1,1,0.1));
-    //m_mesh = sharedMesh;
     
     //placeholder
     static cgra::gl_mesh placeholderMesh = cgra::load_wavefront_data(CGRA_SRCDIR + std::string("/res//assets//teapot.obj")).build();
+    
     cylinder_model placeholder = cylinder_model();
     placeholder.modelTransform = transform * scale(mat4(1), vec3(0.1,1,0.1));
     //placeholder.shader = shader;
