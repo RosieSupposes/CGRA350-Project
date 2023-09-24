@@ -11,7 +11,6 @@
 
 class forest {
 private:
-    cgra::gl_mesh sharedMesh;
     std::vector<tree> trees;
     
     void reset_trees(int treeCount);
