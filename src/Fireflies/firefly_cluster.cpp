@@ -149,7 +149,7 @@ void firefly_cluster::simulate() {
 
 	for (firefly& f : fireflies) {
 		vec3 v1 = towards_brightest(f);
-		v1 = vec3(0);
+		//v1 = vec3(0);
 
 		vec3 v2 = away_from_each_other(f);
 		vec3 v3 = within_bounds(f);
