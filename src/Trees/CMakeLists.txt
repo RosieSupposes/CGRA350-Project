@@ -6,7 +6,16 @@ set(sources
 	"forest.cpp"
 	
 	"tree.hpp"
-	"tree.cpp"
+    "tree.cpp"
+ 
+    "Rule.hpp"
+    "Rule.cpp"
+    
+    "Expression.hpp"
+    "Expression.cpp"
+    
+    "Turtle.hpp"
+    "Turtle.cpp"
 
 	"CMakeLists.txt"
 )

@@ -1,13 +1,10 @@
 #include "forest.hpp"
 
-//Placeholder
-#include "cgra/cgra_wavefront.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
 using namespace glm;
 
 forest::forest(int count){
-    sharedMesh = cgra::load_wavefront_data(CGRA_SRCDIR + std::string("/res//assets//teapot.obj")).build();
 	reload(count);
 }
 
