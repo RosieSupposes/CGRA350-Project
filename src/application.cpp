@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <chrono>
+#include <thread>
 
 // glm
 #include <glm/gtc/constants.hpp>
@@ -108,7 +109,7 @@ void Application::WrapUpFrame(double start_time){
 	double delay = 0;
 	if(frameTime < frames.size()/max_frames){
 		delay = 1/max_frames;
-		_sleep(1000*delay);
+		std::this_thread::sleep_for(std::chrono::milliseconds((unsigned long)(1000*delay)));
 	}
 	double stop_time = glfwGetTime();
 	frames.push_back(stop_time - start_time);
