@@ -38,6 +38,10 @@ private:
 	bool m_show_grid = false;
 	bool m_showWireframe = false;
 
+	//Framerate limiting
+	double max_frames = -1;
+	std::vector<double> frames;
+
 	// geometry
 		//trees
 	int treeCount = 20;
@@ -71,6 +75,8 @@ private:
 	void simulateFireflies();
 	void simulateTrees();
 	void simulateWater();
+
+	void WrapUpFrame(double start_time);
 	
 	void readSettings();
 
