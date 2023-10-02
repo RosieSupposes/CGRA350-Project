@@ -1,5 +1,11 @@
 #include "Turtle.hpp"
 
+Circle::Circle(vec3 center, float radius, vec3 rotation){
+    this->center = center;
+    this->radius = radius;
+    this->rotation = rotation;
+}
+
 Circle::Circle(glm::vec3 center, float radius, int resolution, glm::mat4 rotation){
     this->center = center;
     this->radius = radius;
@@ -58,64 +64,68 @@ void Turtle::loadRules(vector<string> rules){
     }
 }
 
-Expression Turtle::parseExpression(string token){
-    if (token.empty()) {
-        return Expression(); // Empty input
-    }
-
-    // Handle brackets
-    if (token[0] == '(' && token[token.size() - 1] == ')') {
-        int openCount = 0;
-        int closeCount = 0;
-        bool foundMatching = false;
-
-        for (int i = 1; i < (int)token.size() - 1; i++) {
-            if (token[i] == '(') {
-                openCount++;
-            } else if (token[i] == ')') {
-                closeCount++;
+Expression Turtle::parseExpression(std::string token) {
+    for (int i = 0; i < (int)token.size(); i++) {
+        if (token.at(i) == '(') {
+            int d = 1;
+            int j = i;
+            for (i++; d > 0; i++) {
+                if (token.at(i) == '(') {
+                    d++;
+                }
+                if (token.at(i) == ')') {
+                    d--;
+                }
             }
-
-            if (openCount == closeCount) {
-                foundMatching = true;
-                return Expression(parseExpression(token.substr(1, i - 1)), token[i + 1], parseExpression(token.substr(i + 2, token.size() - i - 2)));
+            i--;
+            if (i == 1) {
+                return Expression(); //empty brackets: ()
+            }
+            if (i != (int)token.size() - 1) {
+                //s.substr(pos, length) NOT s.substr(pos1, pos2)
+                //if length > s.size() - pos, length is shrunk to fit string
+                return Expression(parseExpression(token.substr(j + 1, i - 1 - j)), token.at(i + 1), parseExpression(token.substr(i + 2, token.size())));
+            }
+            else {
+                if (j != 0) {
+                    return  Expression(parseExpression(token.substr(0, j - 1)), token.at(j - 1),parseExpression(token.substr(j + 1, token.size() - 2 - j)));
+                }
+                return parseExpression(token.substr(1, token.size() - 2));
             }
         }
-
-        if (!foundMatching) {
-            return Expression(); // Mismatched brackets
+    }
+    for (int i = 0; i < (int)token.size(); i++) {
+        if (token.at(i) == '+') {
+            return Expression(parseExpression(token.substr(0, i)), '+', parseExpression(token.substr(i + 1, token.size())));
+        }
+        if (token.at(i) == '-') {
+            return Expression(parseExpression(token.substr(0, i)), '-', parseExpression(token.substr(i + 1, token.size())));
         }
     }
-
-    // Handle operators
-    char operators[] = {'+', '-', '*', '/', '>'};
-    for (char op : operators) {
-        int pos = (int)token.find(op);
-        if (pos != (int)string::npos) {
-            return Expression(parseExpression(token.substr(0, pos)), op, parseExpression(token.substr(pos + 1)));
+    for (int i = 0; i < (int)token.size(); i++) {
+        if (token.at(i) == '*') {
+            return Expression(parseExpression(token.substr(0, i)),'*', parseExpression(token.substr(i + 1, token.size())));
+        }
+        if (token.at(i) == '/') {
+            return Expression(parseExpression(token.substr(0, i)), '/', parseExpression(token.substr(i + 1, token.size())));
+        }
+        if (token.at(i) == '>') {
+            return Expression(parseExpression(token.substr(0, i)), '>', parseExpression(token.substr(i + 1, token.size())));
         }
     }
-
-    // Handle constants
-    if (token[0] == 'd') {
-        return Expression(distance);
+    if (token.at(0) == 'd') {
+        return Expression(this->distance);
     }
-    if (token[0] == 'a') {
-        return Expression(angle);
+    if (token.at(0) == 'a') {
+        return Expression(this->angle);
     }
-    if (token[0] == 'l') {
-        return Expression(level);
+    if (token.at(0) == 'l') {
+        return Expression(this->level);
     }
-    if (token[0] == 'r') {
-        return Expression(radius);
+    if (token.at(0) == 'r') {
+        return Expression(this->radius);
     }
-
-    // Handle numeric values
-    try {
-        return Expression(stof(token)); // must be a float
-    } catch (const invalid_argument& e) {
-        return Expression(); // Invalid numeric input
-    }
+    return Expression(std::stof(token, 0));//it must be a float now if correct
 }
 
 string Turtle::getCommand(string axiom, int depth){
@@ -309,7 +319,6 @@ cgra::gl_mesh Turtle::cylinder(Circle base, Circle branch){
         vertices.push_back(vertex);
     }
 
-    vertex;
     vertex.pos = branch.center;
     vertex.norm = branch.center - center;
     vertices.push_back(vertex);
