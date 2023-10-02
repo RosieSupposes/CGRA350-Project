@@ -302,8 +302,8 @@ vector<cgra::gl_mesh> Turtle::generateMesh(string command, int resolution, mt199
 }
 
 cgra::gl_mesh Turtle::cylinder(Circle base, Circle branch){
-    std::vector<cgra::mesh_vertex> vertices;
-    std::vector<unsigned int> indices;
+    vector<cgra::mesh_vertex> vertices;
+    vector<unsigned int> indices;
     vec3 center = (branch.center + base.center) / 2.0f;
 
     cgra::mesh_vertex vertex;

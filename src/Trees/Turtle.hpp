@@ -43,19 +43,11 @@ r: The current radius
 */
 
 struct Vertex {
-private:
     vector<int> connections;
     vector<bool> used;
-public:
     int id;
     int branch;
     vec3 pos;
-    void link(Vertex &vertex);
-    int getConnection(int index);
-    int getIndex(int id);
-    bool useConnection(Vertex &vertex);
-    void resetConnections();
-    int connectionsSize();
 };
 
 class Circle {
@@ -65,35 +57,24 @@ public:
     vec3 rotation;
     mat4 matrixRotation = mat4(1);
     float radius;
+    
     Circle() {};
     Circle(vec3 center, float radius, int resolution, mat4 rotation);
     Circle(vec3 center, float radius, vec3 rotation);
-    void increaseResolution(int point1, int point2, int resolution);
+    
     void addPoint(float angle);
-    void addPoint(Vertex &point);//use with caution
     Vertex getPoint(float angle);
-    float getAngle(vec3 point);
-    vector<Vertex> createCircle(int startingID);
-    vector<Vertex> createFullCircle(int resolution);
     vector<Vertex> getPoints();
-    vector<Vertex> getMidPoints(int point1, int point2);
-    void addMidPoint(int point1, int point2);
-    void connectPoint(Vertex &vertex, int id);
-    Vertex getClosestPoint(vec3 point);
-    Vertex getBranchPoint(Circle base/*, vec3 closestBasePoint*/);
-    vec3 normal();
 };
 
 class Branch {
 public:
     Circle base;
     vector<Branch> branches;
+    
     Branch() {};
     Branch(Circle base);
-    ~Branch();
-    void addBranch(Branch branch);
 };
-
 
 struct Point {
     vec3 position;
@@ -131,6 +112,6 @@ public:
     void loadRules(vector<string> rules); //populates ruleList
     Expression parseExpression(string token); //generates an EXP
     string getCommand(string axiom, int depth); //get commands (outputs) of rules
-    vector<cgra::gl_mesh> generateMesh(string command, int resolution, mt19937 randomNumberGenerator);
+    vector<cgra::gl_mesh> generateMesh(string command, int resolution, mt19937 randomNumberGenerator); //generate mesh
     cgra::gl_mesh cylinder(Circle base, Circle branch); //generate a cyliner mesh
 };
