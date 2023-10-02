@@ -29,9 +29,18 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 
 	readSettings();
 	
+	loadShaders("Default");
+	
+	fireflies = firefly_cluster(fireflyCount);
+	trees = forest(treeCount);
+	basic_water = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//simple_water.obj"), vec3(0.0,0.9,0.9));
+	terrain = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//land.obj"), scale(mat4(1), vec3(8)));
+}
+
+void Application::loadShaders(const char * type){
 	shader_builder water_sb, tree_sb, firefly_sb, simple_water_sb;
 	
-    water_sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
+	water_sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
 	water_sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
 	water_shader = water_sb.build();
 	
@@ -46,11 +55,6 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	simple_water_sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
 	simple_water_sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
 	basic_water_shader = simple_water_sb.build();
-	
-	fireflies = firefly_cluster(fireflyCount);
-	trees = forest(treeCount);
-	basic_water = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//simple_water.obj"), vec3(0.0,0.9,0.9));
-	terrain = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//land.obj"), scale(mat4(1), vec3(8)));
 }
 
 
@@ -175,6 +179,12 @@ void Application::renderGUI() {
 	
 	//OPTIONS
 	ImGui::Text("OPTIONS");
+	const char* items[] = { "PBR", "Sketched", "Pixel Dithered"};
+	static int item_current = 0; // If the selection isn't within 0..count, Combo won't display a preview
+    if(ImGui::Combo("Style", &item_current, items, sizeof(items)/sizeof(*items))){
+		loadShaders(items[item_current]);
+	}
+
 	ImGui::Checkbox("Water Sim Enabled", &water_sim_enabled);
 	if (ImGui::InputInt("Fireflies", &fireflyCount)) {
 		fireflies.reload(fireflyCount);

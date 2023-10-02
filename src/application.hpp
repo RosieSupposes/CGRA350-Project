@@ -79,6 +79,7 @@ private:
 	void WrapUpFrame(double start_time);
 	
 	void readSettings();
+	void loadShaders(const char* type);
 
 public:
 	// setup
