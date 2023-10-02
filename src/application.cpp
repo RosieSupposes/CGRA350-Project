@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <chrono>
+#include <thread>
 
 // glm
 #include <glm/gtc/constants.hpp>
@@ -54,7 +55,7 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 
 
 void Application::render() {
-	
+	double start_time = glfwGetTime();
 	// retrieve the window hieght
 	int width, height;
 	glfwGetFramebufferSize(m_window, &width, &height); 
@@ -92,6 +93,26 @@ void Application::render() {
 	renderFireflies(view, proj);
 	renderWater(view, proj);
 	renderTrees(view, proj);
+	WrapUpFrame(start_time);
+}
+
+void Application::WrapUpFrame(double start_time){
+	if(frames.size() > max_frames)
+	{
+		frames.clear();
+	}
+	double frameTime = 0;
+	for(int i = 0; i < frames.size(); i++)
+	{
+		frameTime += frames[i];
+	}
+	double delay = 0;
+	if(frameTime < frames.size()/max_frames){
+		delay = 1/max_frames;
+		std::this_thread::sleep_for(std::chrono::milliseconds((unsigned long)(1000*delay)));
+	}
+	double stop_time = glfwGetTime();
+	frames.push_back(stop_time - start_time);
 }
 
 void Application::renderFireflies(const mat4 &view, const mat4 proj){
@@ -251,6 +272,11 @@ void Application::readSettings(){
 			std::string outHolder;
 			if (mode == "water_sim_enabled=") {
 				settingsLine >> water_sim_enabled;
+				std::cout << "Set water simulation default to " << (max_frames ? "On" : "Off") << std::endl;
+			}
+			else if (mode == "framerate_limit=") {
+				settingsLine >> max_frames;
+				std::cout << "Set frame rate limit to " << max_frames << std::endl;
 			}
 			else if (mode == "other_things") {
 				std::string placeHolder;
