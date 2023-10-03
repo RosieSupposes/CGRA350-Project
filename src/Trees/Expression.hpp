@@ -2,6 +2,7 @@
 
 //std
 #include <random>
+#include <string>
 
 // glm
 #include <glm/glm.hpp>
