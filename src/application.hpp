@@ -42,11 +42,17 @@ private:
 	double max_frames = -1;
 	std::vector<double> frames;
 
+	//Style
+	const char* styles[3] = { "PBR", "Sketched", "Pixel"};
+
+
 	// geometry
 		//trees
 	int treeCount = 20;
+	int recursion_depth = 2;
 	GLuint tree_shader = 0;
-	forest trees{0};
+	forest trees{0, 0, ""};
+	const char* tree_styles[2] = { "Basic", "Complex"};
 	
 		//fireflies
 	int fireflyCount = 100;
@@ -65,6 +71,7 @@ private:
 	GLuint water_shader = 0;
 	water_sim water;
 
+	GLuint buildVertAndFragShader(string file_head);
 	
 	void renderFireflies(const glm::mat4 &view, const glm::mat4 proj);
 	void renderTrees(const glm::mat4 &view, const glm::mat4 proj);
@@ -79,6 +86,7 @@ private:
 	void WrapUpFrame(double start_time);
 	
 	void readSettings();
+	void loadShaders(const char* type);
 
 public:
 	// setup

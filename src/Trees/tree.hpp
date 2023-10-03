@@ -47,7 +47,7 @@ private:
     //std::random_device rd;
 
 public:
-    tree(glm::mat4 transform);
+    tree(glm::mat4 transform, int recursion_depth, string style);
 	void draw(const glm::mat4 &view, const glm::mat4 &proj, GLuint shader);
 };  
  

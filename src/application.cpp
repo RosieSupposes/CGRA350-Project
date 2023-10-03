@@ -29,28 +29,37 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 
 	readSettings();
 	
-	shader_builder water_sb, tree_sb, firefly_sb, simple_water_sb;
-	
-    water_sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
-	water_sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
-	water_shader = water_sb.build();
-	
-	tree_sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
-	tree_sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
-	tree_shader = tree_sb.build();
-	
-	firefly_sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
-	firefly_sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
-	firefly_shader = firefly_sb.build();
-	
-	simple_water_sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
-	simple_water_sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
-	basic_water_shader = simple_water_sb.build();
+	loadShaders(styles[0]);
 	
 	fireflies = firefly_cluster(fireflyCount);
-	trees = forest(treeCount);
+	trees = forest(treeCount, recursion_depth, std::string(tree_styles[0]));
 	basic_water = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//simple_water.obj"), vec3(0.0,0.9,0.9));
 	terrain = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//land.obj"), scale(mat4(1), vec3(8)));
+}
+
+void Application::loadShaders(const char * type){
+	string style = std::string(type);
+	std::cout << style << std::endl;
+	//Check for contains long term, this is hack for now
+	//if("PBR", "Sketched", "Pixel"){
+	//	style = std::string("color");
+	//}
+
+	shader_builder water_sb, tree_sb, firefly_sb, simple_water_sb;
+	string file_head = CGRA_SRCDIR + std::string("//res//shaders//") + style;
+	
+	water_shader = buildVertAndFragShader(file_head);
+	tree_shader = buildVertAndFragShader(file_head);
+	firefly_shader = buildVertAndFragShader(file_head);
+	basic_water_shader = buildVertAndFragShader(file_head);
+	std::cout << "Changed shader type to: " << style << std::endl;
+}
+
+GLuint Application::buildVertAndFragShader(string file_head){
+	shader_builder builder;
+	builder.set_shader(GL_VERTEX_SHADER, file_head + std::string("_vert.glsl"));
+	builder.set_shader(GL_FRAGMENT_SHADER, file_head + std::string("_frag.glsl"));
+	return builder.build();
 }
 
 
@@ -175,13 +184,29 @@ void Application::renderGUI() {
 	
 	//OPTIONS
 	ImGui::Text("OPTIONS");
+
+	ImGui::Text("Style");
+	static int selected_style = 0; // If the selection isn't within 0..count, Combo won't display a preview
+    if(ImGui::Combo("Style", &selected_style, styles, sizeof(styles)/sizeof(*styles))){
+		loadShaders(styles[selected_style]);
+	}
+
+	ImGui::Text("Water");
 	ImGui::Checkbox("Water Sim Enabled", &water_sim_enabled);
+	ImGui::Text("Fireflies");
 	if (ImGui::InputInt("Fireflies", &fireflyCount)) {
 		fireflies.reload(fireflyCount);
 	}
-	if (ImGui::InputInt("Trees", &treeCount)) {
-		trees.reload(treeCount);
+	ImGui::Text("Trees");
+	static int selected_tree_style = 0;
+	bool tree_style_changed = ImGui::Combo("Tree style", &selected_tree_style, tree_styles, sizeof(tree_styles)/sizeof(*tree_styles));
+	bool tree_count_changed = ImGui::InputInt("Trees", &treeCount);
+	bool tree_depth_changed = ImGui::InputInt("Recursion Depth", &recursion_depth);
+	if(tree_style_changed || tree_count_changed || tree_depth_changed){
+		string style = std::string(tree_styles[selected_tree_style]);
+		trees.reload(treeCount, recursion_depth, std::string(style));
 	}
+
 	ImGui::Separator();
 	// helpful drawing options
 	ImGui::Checkbox("Show axis", &m_show_axis);
@@ -251,7 +276,6 @@ void Application::readSettings(){
 	ifstream settingsFile(filename);
 	if (!settingsFile.is_open()) {
 		cerr << "Error: could not open " << filename << endl;
-		throw runtime_error("Error: could not open file " + filename);
 	}
 
 	// good() means that failbit, badbit and eofbit are all not set
@@ -277,6 +301,10 @@ void Application::readSettings(){
 			else if (mode == "framerate_limit=") {
 				settingsLine >> max_frames;
 				std::cout << "Set frame rate limit to " << max_frames << std::endl;
+			}
+			else if (mode == "tree_recursion_depth=") {
+				settingsLine >> recursion_depth;
+				std::cout << "Set tree recursion depth to " << recursion_depth << std::endl;
 			}
 			else if (mode == "other_things") {
 				std::string placeHolder;

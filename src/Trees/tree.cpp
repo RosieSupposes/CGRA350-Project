@@ -7,7 +7,7 @@
 using namespace glm;
 using namespace std;
 
-tree::tree(glm::mat4 transform){
+tree::tree(glm::mat4 transform, int recursion_depth, string style){
     vector<Rule> rules;
         
     //tree base
