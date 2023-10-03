@@ -1,5 +1,8 @@
 #include "firefly_cluster.hpp"
 
+#include <iostream>
+#include <random>
+
 //Placeholder
 #include "cgra/cgra_wavefront.hpp"
 #include <glm/gtc/matrix_transform.hpp>
@@ -10,8 +13,12 @@ using namespace std;
 firefly_cluster::firefly_cluster(int count) {
 	sharedMesh = cgra::load_wavefront_data(CGRA_SRCDIR + std::string("/res//assets//placeholderSphere.obj")).build();
 	reload(count);
-	min_bounds = vec3(-20, 0, -20);
-	max_bounds = vec3(20, 5, 20);
+	min_bounds = vec3(-20, 5, -20);
+	max_bounds = vec3(20, 10, 20);
+
+	//gen = mt19937(rd()); // seed the generator
+	float range = 1.5f;
+	random_small_vector = uniform_real_distribution<>(-range, range); // define the range
 }
 
 void firefly_cluster::reload(int count) {
@@ -48,35 +55,43 @@ vec3 firefly_cluster::towards_brightest(firefly f) {
 	vec3 v(0);
 	vec3 brightest_pos;
 	float brightest_value = -1;
-	for (firefly o : get_closest_fireflies(f)) {
-		if (o.brightness > brightest_value && o.brightness > f.brightness) {
+	for (firefly* o : f.neighbours) {
+		float other_brightness = o->brightness;
+		//cout << other_brightness << endl;
+		if (other_brightness > f.brightness && other_brightness > brightest_value) {
 			//vec3 m(attraction(o, f) * (o.pos - f.pos) + alpha * o.search_precision);
 			//cout << move.x << "," << move.y << "," << move.z << endl;
-			brightest_pos = o.pos;
-			brightest_value = o.brightness;
-
+			brightest_pos = o->pos;
+			brightest_value = other_brightness;
+			if (brightest_value >= max_brightness) {
+				break;
+			}
+			//cout << "bright set" << endl;
 		}
 	}
+
 	if (brightest_value > -1) {
-		vec3 m((brightest_pos - f.pos) * 0.02f);
+		vec3 m((brightest_pos - f.pos) * 0.5f);
 		v = m;
+		//cout << "no bright" << endl;
 	}
 	else {
-		float x = get_random_num(-0.1f, 0.1f);
-		float y = get_random_num(-0.1f, 0.1f);
-		float z = get_random_num(-0.1f, 0.1f);
+		float x = random_small_vector(gen);
+		float y = random_small_vector(gen);
+		float z = random_small_vector(gen);
 		v = vec3(x, y, z);
+		//v = vec3(max);
 	}
 	return v;
 }
 
 vec3 firefly_cluster::away_from_each_other(firefly f) {
-	float distance = 1.5f;
+	float d = 1.5f;
 	vec3 v(0);
-	for (firefly o : get_closest_fireflies(f)) {
-		if (o.pos != f.pos) {
-			if (length(o.pos - f.pos) < distance) {
-				v = v - (o.pos - f.pos);
+	for (firefly* o : f.neighbours) {
+		if ((*o).pos != f.pos) {
+			if (distance((*o).pos, f.pos) < d) {
+				v = v - ((*o).pos - f.pos);
 			}
 		}
 	}
@@ -85,7 +100,7 @@ vec3 firefly_cluster::away_from_each_other(firefly f) {
 
 vec3 firefly_cluster::within_bounds(firefly f) {
 	vec3 v(0);
-	float d = 0.05f;
+	float d = 0.5f;
 	if (f.pos.x < min_bounds.x) {
 		v.x = d;
 	}
@@ -131,6 +146,10 @@ float firefly_cluster::get_random_num(float lower, float upper) {
 }
 
 void firefly_cluster::simulate() {
+	for (firefly& f : fireflies) {
+		get_closest_fireflies(f);
+		//cout << f.neighbours.size() << endl;
+	}
 
 	//cout << fireflies[0].pos.x << "," << fireflies[0].pos.y << "," << fireflies[0].pos.z << endl;
 	//update position
@@ -148,6 +167,8 @@ void firefly_cluster::simulate() {
 	//}
 
 	for (firefly& f : fireflies) {
+		//cout << f.brightness << endl;
+
 		vec3 v1 = towards_brightest(f);
 		//v1 = vec3(0);
 
@@ -166,23 +187,24 @@ void firefly_cluster::simulate() {
 		else {
 			i.brightness += brightness_step;
 		}
+		//cout << i.brightness << endl;
 
-		for (firefly& j : get_closest_fireflies(i)) {
-			if (j.brightness >= max_brightness) {
+		for (firefly* j : i.neighbours) {
+			if ((*j).brightness >= max_brightness) {
 				i.brightness += brightness_step;
 			}
 		}
 	}
 }
 
-vector<firefly> firefly_cluster::get_closest_fireflies(firefly f) {
-	vector<firefly> neighbours;
-	for (firefly o : fireflies) {
-		if (distance(o.pos, f.pos) <= dist) {
-			neighbours.push_back(o);
+void firefly_cluster::get_closest_fireflies(firefly& f) {
+	f.neighbours.clear();
+	for (firefly& o : fireflies) {
+		if (&f != &o && distance(o.pos, f.pos) <= neighbourhood_size) {
+			f.neighbours.push_back(&o);
+			//cout << "neighbour " << endl;
 		}
 	}
-	return neighbours;
 }
 
 void firefly_cluster::draw(const mat4& view, const mat4& proj, GLuint shader) {
