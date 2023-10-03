@@ -10,13 +10,14 @@
 // project
 #include "opengl.hpp"
 #include "cgra/cgra_mesh.hpp"
+#include "Turtle.hpp"
 
 struct cylinder_model {
     //GLuint shader = 0;
     cgra::gl_mesh mesh;
-    glm::vec3 color{0.7};
+    glm::vec3 color = vec3(0.4196, 0.2863, 0.1686);
     glm::mat4 modelTransform{1.0};
-    //GLuint texture;
+    GLuint texture;
     
     void draw(const glm::mat4 &view, const glm::mat4 proj, GLuint shader){
         glm::mat4 modelview = view * modelTransform;
@@ -29,21 +30,21 @@ struct cylinder_model {
     }
 };
 
+class Turtle;
+
 class tree {
 private:
-	//cgra::gl_mesh m_mesh;
-    //glm::vec3 m_color{0.7};
-    //glm::mat4 m_modelTransform{1.0};
-	//GLuint m_texture;
-    
     cylinder_model model;
-    std::vector<cylinder_model> cylinders;
-    
+    std::vector<cylinder_model> cylinder_models;
     std::vector<std::string> rules;
+    
     std::string axiom = "EF";
-    int depth = 1;
+    int depth = 2;
     int resolution = 3;
+    
     std::mt19937 randomNumberGenerator;
+    //unsigned int seed;
+    //std::random_device rd;
 
 public:
     tree(glm::mat4 transform);
