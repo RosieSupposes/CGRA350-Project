@@ -288,6 +288,10 @@ void Application::readSettings(){
 				settingsLine >> max_frames;
 				std::cout << "Set frame rate limit to " << max_frames << std::endl;
 			}
+			else if (mode == "tree_recursion_depth=") {
+				settingsLine >> recursion_depth;
+				std::cout << "Set tree recursion depth to " << recursion_depth << std::endl;
+			}
 			else if (mode == "other_things") {
 				std::string placeHolder;
 				settingsLine >> placeHolder;

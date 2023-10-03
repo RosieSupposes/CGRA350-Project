@@ -1,2 +1,3 @@
 water_sim_enabled= 0
-framerate_limit= 60
+framerate_limit= 120
+tree_recursion_depth= 4

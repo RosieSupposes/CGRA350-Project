@@ -45,6 +45,7 @@ private:
 	// geometry
 		//trees
 	int treeCount = 20;
+	int recursion_depth = 2;
 	GLuint tree_shader = 0;
 	forest trees{0};
 	
