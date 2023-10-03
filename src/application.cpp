@@ -192,6 +192,9 @@ void Application::renderGUI() {
 	if (ImGui::InputInt("Trees", &treeCount)) {
 		trees.reload(treeCount);
 	}
+	if (ImGui::InputInt("Tree Recursion Depth", &recursion_depth)) {
+		trees.reload(treeCount);
+	}
 	ImGui::Separator();
 	// helpful drawing options
 	ImGui::Checkbox("Show axis", &m_show_axis);
@@ -261,7 +264,6 @@ void Application::readSettings(){
 	ifstream settingsFile(filename);
 	if (!settingsFile.is_open()) {
 		cerr << "Error: could not open " << filename << endl;
-		throw runtime_error("Error: could not open file " + filename);
 	}
 
 	// good() means that failbit, badbit and eofbit are all not set
