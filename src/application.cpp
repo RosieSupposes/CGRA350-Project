@@ -204,6 +204,10 @@ void Application::renderGUI() {
 	if (ImGui::InputInt("Recursion Depth", &recursion_depth)) {
 		trees.reload(treeCount);
 	}
+	static int selected_style = 0;
+	if(ImGui::Combo("Tree style", &selected_style, tree_styles, sizeof(tree_styles)/sizeof(*tree_styles))){
+		loadShaders(styles[selected_style]);
+	}
 	ImGui::Separator();
 	// helpful drawing options
 	ImGui::Checkbox("Show axis", &m_show_axis);

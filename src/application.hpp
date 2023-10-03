@@ -45,12 +45,14 @@ private:
 	//Style
 	const char* styles[3] = { "PBR", "Sketched", "Pixel"};
 
+
 	// geometry
 		//trees
 	int treeCount = 20;
 	int recursion_depth = 2;
 	GLuint tree_shader = 0;
 	forest trees{0};
+	const char* tree_styles[2] = { "Basic", "Complex"};
 	
 		//fireflies
 	int fireflyCount = 100;
