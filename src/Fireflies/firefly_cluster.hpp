@@ -21,6 +21,8 @@ private:
     float alpha = 0.5f;                //between 0 and 1
     float max_brightness = 1.0f; 
     float brightness_step = 0.001f;
+
+    float dist = 3.0f;
     
     void reset_flies(int fireflyCount);
     float relative_brightness(firefly i, firefly j);
@@ -37,6 +39,7 @@ private:
     glm::vec3 fly_to_centre(firefly f);
     glm::vec3 match_velocity(firefly f);
     void limit_velocity(firefly &f);
+    std::vector<firefly> get_closest_fireflies(firefly f);
 
     float get_random_num(float lower, float upper);
 

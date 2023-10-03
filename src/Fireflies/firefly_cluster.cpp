@@ -48,7 +48,7 @@ vec3 firefly_cluster::towards_brightest(firefly f) {
 	vec3 v(0);
 	vec3 brightest_pos;
 	float brightest_value = -1;
-	for (firefly o : fireflies) {
+	for (firefly o : get_closest_fireflies(f)) {
 		if (o.brightness > brightest_value && o.brightness > f.brightness) {
 			//vec3 m(attraction(o, f) * (o.pos - f.pos) + alpha * o.search_precision);
 			//cout << move.x << "," << move.y << "," << move.z << endl;
@@ -73,7 +73,7 @@ vec3 firefly_cluster::towards_brightest(firefly f) {
 vec3 firefly_cluster::away_from_each_other(firefly f) {
 	float distance = 1.5f;
 	vec3 v(0);
-	for (firefly o : fireflies) {
+	for (firefly o : get_closest_fireflies(f)) {
 		if (o.pos != f.pos) {
 			if (length(o.pos - f.pos) < distance) {
 				v = v - (o.pos - f.pos);
@@ -167,12 +167,22 @@ void firefly_cluster::simulate() {
 			i.brightness += brightness_step;
 		}
 
-		for (firefly& j : fireflies) {
+		for (firefly& j : get_closest_fireflies(i)) {
 			if (j.brightness >= max_brightness) {
 				i.brightness += brightness_step;
 			}
 		}
 	}
+}
+
+vector<firefly> firefly_cluster::get_closest_fireflies(firefly f) {
+	vector<firefly> neighbours;
+	for (firefly o : fireflies) {
+		if (distance(o.pos, f.pos) <= dist) {
+			neighbours.push_back(o);
+		}
+	}
+	return neighbours;
 }
 
 void firefly_cluster::draw(const mat4& view, const mat4& proj, GLuint shader) {
