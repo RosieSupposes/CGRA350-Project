@@ -29,7 +29,7 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 
 	readSettings();
 	
-	loadShaders("Default");
+	loadShaders(styles[0]);
 	
 	fireflies = firefly_cluster(fireflyCount);
 	trees = forest(treeCount);
@@ -38,23 +38,28 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 }
 
 void Application::loadShaders(const char * type){
+	string style = std::string(type);
+	std::cout << style << std::endl;
+	//Check for contains long term, this is hack for now
+	//if("PBR", "Sketched", "Pixel"){
+	//	style = std::string("color");
+	//}
+
 	shader_builder water_sb, tree_sb, firefly_sb, simple_water_sb;
+	string file_head = CGRA_SRCDIR + std::string("//res//shaders//") + style;
 	
-	water_sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
-	water_sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
-	water_shader = water_sb.build();
-	
-	tree_sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
-	tree_sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
-	tree_shader = tree_sb.build();
-	
-	firefly_sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
-	firefly_sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
-	firefly_shader = firefly_sb.build();
-	
-	simple_water_sb.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
-	simple_water_sb.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
-	basic_water_shader = simple_water_sb.build();
+	water_shader = buildVertAndFragShader(file_head);
+	tree_shader = buildVertAndFragShader(file_head);
+	firefly_shader = buildVertAndFragShader(file_head);
+	basic_water_shader = buildVertAndFragShader(file_head);
+	std::cout << "Changed shader type to: " << style << std::endl;
+}
+
+GLuint Application::buildVertAndFragShader(string file_head){
+	shader_builder builder;
+	builder.set_shader(GL_VERTEX_SHADER, file_head + std::string("_vert.glsl"));
+	builder.set_shader(GL_FRAGMENT_SHADER, file_head + std::string("_frag.glsl"));
+	return builder.build();
 }
 
 
@@ -179,20 +184,24 @@ void Application::renderGUI() {
 	
 	//OPTIONS
 	ImGui::Text("OPTIONS");
-	const char* items[] = { "PBR", "Sketched", "Pixel Dithered"};
+
+	ImGui::Text("Style");
 	static int item_current = 0; // If the selection isn't within 0..count, Combo won't display a preview
-    if(ImGui::Combo("Style", &item_current, items, sizeof(items)/sizeof(*items))){
-		loadShaders(items[item_current]);
+    if(ImGui::Combo("Style", &item_current, styles, sizeof(styles)/sizeof(*styles))){
+		loadShaders(styles[item_current]);
 	}
 
+	ImGui::Text("Water");
 	ImGui::Checkbox("Water Sim Enabled", &water_sim_enabled);
+	ImGui::Text("Fireflies");
 	if (ImGui::InputInt("Fireflies", &fireflyCount)) {
 		fireflies.reload(fireflyCount);
 	}
+	ImGui::Text("Trees");
 	if (ImGui::InputInt("Trees", &treeCount)) {
 		trees.reload(treeCount);
 	}
-	if (ImGui::InputInt("Tree Recursion Depth", &recursion_depth)) {
+	if (ImGui::InputInt("Recursion Depth", &recursion_depth)) {
 		trees.reload(treeCount);
 	}
 	ImGui::Separator();

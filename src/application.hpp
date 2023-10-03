@@ -42,6 +42,9 @@ private:
 	double max_frames = -1;
 	std::vector<double> frames;
 
+	//Style
+	const char* styles[3] = { "PBR", "Sketched", "Pixel"};
+
 	// geometry
 		//trees
 	int treeCount = 20;
@@ -66,6 +69,7 @@ private:
 	GLuint water_shader = 0;
 	water_sim water;
 
+	GLuint buildVertAndFragShader(string file_head);
 	
 	void renderFireflies(const glm::mat4 &view, const glm::mat4 proj);
 	void renderTrees(const glm::mat4 &view, const glm::mat4 proj);
