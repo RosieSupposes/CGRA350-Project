@@ -13,11 +13,11 @@ class forest {
 private:
     std::vector<tree> trees;
     
-    void reset_trees(int treeCount);
+    void reset_trees(int treeCount, int recursion_depth, string style);
 
 public:
-    forest(int count);
-    void reload(int count);
+    forest(int count, int recursion_depth, string style);
+    void reload(int count, int recursion_depth, string style);
     void simulate();
 	void draw(const glm::mat4 &view, const glm::mat4 &proj, GLuint shader);
 };  

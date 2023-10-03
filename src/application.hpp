@@ -51,7 +51,7 @@ private:
 	int treeCount = 20;
 	int recursion_depth = 2;
 	GLuint tree_shader = 0;
-	forest trees{0};
+	forest trees{0, 0, ""};
 	const char* tree_styles[2] = { "Basic", "Complex"};
 	
 		//fireflies

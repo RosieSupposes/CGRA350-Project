@@ -32,7 +32,7 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	loadShaders(styles[0]);
 	
 	fireflies = firefly_cluster(fireflyCount);
-	trees = forest(treeCount);
+	trees = forest(treeCount, recursion_depth, std::string(tree_styles[0]));
 	basic_water = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//simple_water.obj"), vec3(0.0,0.9,0.9));
 	terrain = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//land.obj"), scale(mat4(1), vec3(8)));
 }
@@ -186,9 +186,9 @@ void Application::renderGUI() {
 	ImGui::Text("OPTIONS");
 
 	ImGui::Text("Style");
-	static int item_current = 0; // If the selection isn't within 0..count, Combo won't display a preview
-    if(ImGui::Combo("Style", &item_current, styles, sizeof(styles)/sizeof(*styles))){
-		loadShaders(styles[item_current]);
+	static int selected_style = 0; // If the selection isn't within 0..count, Combo won't display a preview
+    if(ImGui::Combo("Style", &selected_style, styles, sizeof(styles)/sizeof(*styles))){
+		loadShaders(styles[selected_style]);
 	}
 
 	ImGui::Text("Water");
@@ -198,16 +198,15 @@ void Application::renderGUI() {
 		fireflies.reload(fireflyCount);
 	}
 	ImGui::Text("Trees");
-	if (ImGui::InputInt("Trees", &treeCount)) {
-		trees.reload(treeCount);
+	static int selected_tree_style = 0;
+	bool tree_style_changed = ImGui::Combo("Tree style", &selected_tree_style, tree_styles, sizeof(tree_styles)/sizeof(*tree_styles));
+	bool tree_count_changed = ImGui::InputInt("Trees", &treeCount);
+	bool tree_depth_changed = ImGui::InputInt("Recursion Depth", &recursion_depth);
+	if(tree_style_changed || tree_count_changed || tree_depth_changed){
+		string style = std::string(tree_styles[selected_tree_style]);
+		trees.reload(treeCount, recursion_depth, std::string(style));
 	}
-	if (ImGui::InputInt("Recursion Depth", &recursion_depth)) {
-		trees.reload(treeCount);
-	}
-	static int selected_style = 0;
-	if(ImGui::Combo("Tree style", &selected_style, tree_styles, sizeof(tree_styles)/sizeof(*tree_styles))){
-		loadShaders(styles[selected_style]);
-	}
+
 	ImGui::Separator();
 	// helpful drawing options
 	ImGui::Checkbox("Show axis", &m_show_axis);
