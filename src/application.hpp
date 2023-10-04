@@ -65,6 +65,13 @@ private:
 	bool water_sim_enabled = false;
 	GLuint basic_water_shader = 0;
 	basic_model basic_water;
+	float boundDamping = -0.3f;
+	float restDensity = 1.0f; //restDensity (1.0)
+	float gasConstant = 2.0f; //gasConstant (2.0)
+	float viscosity = -0.003f; //viscosity (-0.003)
+	float particleMass = 1.0f; //particleMass (1.0)
+	float smoothingRadius = 1.0f; //smoothingRadius (1.0)
+	float timeStep = 0.001f; //timeStep (0.001)
 	
 		//watersim
 	GLuint water_shader = 0;
@@ -100,6 +107,10 @@ public:
 	// rendering callbacks (every frame)
 	void render();
 	void renderGUI();
+
+	void renderShaderGUI(int height, int pos);
+	void renderTreesGUI(int height, int pos);
+	void renderWaterGUI(int height, int pos);
 
 	// input callbacks
 	void cursorPosCallback(double xpos, double ypos);

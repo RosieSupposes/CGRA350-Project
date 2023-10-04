@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <random>
+#include "cgra/cgra_gui.hpp"
 
 //Placeholder
 #include "cgra/cgra_wavefront.hpp"
@@ -214,6 +215,17 @@ void firefly_cluster::draw(const mat4& view, const mat4& proj, GLuint shader) {
 	}
 }
 
-void firefly_cluster::renderGUI() {
+void firefly_cluster::renderGUI(int height, int pos) {
+	ImGui::SetNextWindowPos(ImVec2(5, pos), ImGuiSetCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(300, height), ImGuiSetCond_Once);
+	ImGui::Begin("Fireflies", 0);
 
+	ImGui::Text("Fireflies");
+	int fireflyCount = 100;
+	if (ImGui::InputInt("Fireflies", &fireflyCount)) {
+		this->reload(fireflyCount);
+	}
+	
+	// finish creating window
+	ImGui::End();
 }
