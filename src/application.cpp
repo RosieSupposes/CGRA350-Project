@@ -249,7 +249,7 @@ void Application::mouseButtonCallback(int button, int action, int mods) {
 
 void Application::scrollCallback(double xoffset, double yoffset) {
 	(void)xoffset; // currently un-used
-	//m_distance *= pow(1.1f, -yoffset);
+	m_camera.move(vec3(0,0,2) * (float)(sign(yoffset) * pow(1.1f, -yoffset)));
 }
 
 enum keys{
