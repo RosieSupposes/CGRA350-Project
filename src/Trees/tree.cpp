@@ -6,6 +6,7 @@
 
 using namespace glm;
 using namespace std;
+using namespace cgra;
 
 tree::tree(glm::mat4 transform, int recursion_depth, string style){
     vector<Rule> rules;
@@ -21,9 +22,21 @@ tree::tree(glm::mat4 transform, int recursion_depth, string style){
     //turtle to translate l-system to trees
     Turtle turtle = Turtle();
     
-    //basic test tree
-    this->rules.push_back("EF:F[C+EF][C-EF][C^EF][C&EF]");
-    this->rules.push_back("C:A(1)D(d*(1/2))R((1/10)/(2*l))");
+    //set rules for different styles of trees
+    if(style == "Basic"){
+        //clamp basic tree at depth of 4
+        recursion_depth = std::min(recursion_depth, 4);
+        axiom = "EF";
+        this->rules.push_back("EF:F[C+EF][C-EF][C^EF][C&EF][C*EF]");
+        this->rules.push_back("C:A(1)D(d*(1/2))R((1/13)/(2*l))");
+    } else{
+        //clamp complex tree at depth of 7
+        recursion_depth = std::min(recursion_depth, 7);
+        axiom = "R((1/4))D(0.1)FD(0.3)R((4/5)*r)FD(0.7)R((11/12)*r)FD(2>3)R((10/11)*r)FC";
+        this->rules.push_back("C:P(0.1)F[PFC][B]");
+        this->rules.push_back("P:A(0.1)+A(0.1)^D((d/6)/(d/2))R(0.8*r)");
+        this->rules.push_back("B:A(1)/A(0.8)+D(6/(l*4))R(0.6*r)FC");
+    }
     
     //convert rules to rule objects
     turtle.loadRules(this->rules);
@@ -31,14 +44,18 @@ tree::tree(glm::mat4 transform, int recursion_depth, string style){
     //enable random generation
     //seed = rd();
     //randomNumberGenerator = mt19937(seed);
-    randomNumberGenerator = std::mt19937(0); //dummy seed for now
+    randomNumberGenerator = mt19937(0); //dummy seed for now
 
     //turtle to make the tree mesh - populate cylinder models
-    string command = turtle.getCommand(axiom, depth);
-    vector<cgra::gl_mesh> cylinders = turtle.generateMesh(command, resolution, randomNumberGenerator);
+    string command = turtle.getCommand(axiom, recursion_depth);
+    vector<gl_mesh> cylinders = turtle.generateMesh(command, resolution, randomNumberGenerator);
     for (int i = 0; i < (int)cylinders.size(); i++) {
         cylinder_model model = cylinder_model();
-        model.modelTransform = transform * scale(mat4(1), vec3(6,6,6));
+        if(style == "Basic"){
+            model.modelTransform = transform * scale(mat4(1), vec3(6));
+        } else{
+            model.modelTransform = transform * scale(mat4(1), vec3(2));
+        }
         //model.shader = shader;
         model.mesh = cylinders.at(i);
         cylinder_models.push_back(model);
