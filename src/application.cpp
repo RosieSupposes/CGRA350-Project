@@ -216,10 +216,6 @@ void Application::renderGUI() {
 	ImGui::SameLine();
 	if (ImGui::Button("Screenshot")) rgba_image::screenshot(true);
 
-	
-	
-
-
 	// finish creating window
 	ImGui::End();
 }

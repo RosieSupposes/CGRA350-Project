@@ -56,4 +56,6 @@ public:
 	void reload(int count);
 	void simulate();
 	void draw(const glm::mat4& view, const glm::mat4& proj, GLuint shader);
+	void renderGUI();
+
 };

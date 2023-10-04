@@ -213,3 +213,7 @@ void firefly_cluster::draw(const mat4& view, const mat4& proj, GLuint shader) {
 		ff.draw(view, proj, shader);
 	}
 }
+
+void firefly_cluster::renderGUI() {
+
+}
