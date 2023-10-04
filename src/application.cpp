@@ -200,17 +200,21 @@ void Application::renderGUI() {
 	int fireflyWindowPos = mainWindowPos + mainWindowHeight + gap;
 	fireflies.renderGUI(fireflyWindowHeight, fireflyWindowPos);
 
-	int shaderWindowHeight = 75;
+	int shaderWindowHeight = 75; //can change height here if you add more controls
 	int shaderWindowPos = fireflyWindowPos + fireflyWindowHeight + gap;
 	renderShaderGUI(shaderWindowHeight, shaderWindowPos);
 
-	int treesWindowHeight = 125;
+	int treesWindowHeight = 125; //can change height here if you add more controls
 	int treesWindowPos = shaderWindowPos + shaderWindowHeight + gap;
 	renderTreesGUI(treesWindowHeight, treesWindowPos);
+	//TODO steal the renderTreesGUI function from down below and move it into the forest class, 
+	//trees.renderGUI(treesWindowHeight, treesWindowPos);
 
-	int waterWindowHeight = 230;
+	int waterWindowHeight = 230; //can change height here if you add more controls
 	int waterWindowPos = treesWindowPos + treesWindowHeight + gap;
 	renderWaterGUI(waterWindowHeight, waterWindowPos);
+	//TODO steal the renderWaterGUI function from down below and move it into the forest class, 
+	//water.renderGUI(treesWindowHeight, treesWindowPos);
 }
 
 void Application::renderShaderGUI(int height, int pos) {
