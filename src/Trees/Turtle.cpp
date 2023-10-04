@@ -138,8 +138,8 @@ string Turtle::getCommand(string axiom, int depth){
     return command; //currently only applies one rule
 }
 
-vector<cgra::gl_mesh> Turtle::generateMesh(string command, int resolution, mt19937 randomNumberGenerator){
-    vector<cgra::gl_mesh> cylinders;
+vector<gl_mesh> Turtle::generateMesh(string command, int resolution, mt19937 randomNumberGenerator){
+    vector<gl_mesh> cylinders;
 
     for (int i = 0; i < (int)command.size(); i++) {
         string token;
@@ -164,7 +164,7 @@ vector<cgra::gl_mesh> Turtle::generateMesh(string command, int resolution, mt199
             else {
                 start = lastCircle;
             }
-            cgra::gl_mesh cylinder = this->cylinder(*start, end);
+            gl_mesh cylinder = this->cylinder(*start, end);
             cylinders.push_back(cylinder);
             lastCircle = make_shared<Circle>(end);
             circle = lastCircle;
@@ -301,19 +301,19 @@ vector<cgra::gl_mesh> Turtle::generateMesh(string command, int resolution, mt199
     return cylinders;
 }
 
-cgra::gl_mesh Turtle::cylinder(Circle base, Circle branch){
-    vector<cgra::mesh_vertex> vertices;
+gl_mesh Turtle::cylinder(Circle base, Circle branch){
+    vector<mesh_vertex> vertices;
     vector<unsigned int> indices;
     vec3 center = (branch.center + base.center) / 2.0f;
 
-    cgra::mesh_vertex vertex;
+    mesh_vertex vertex;
     vertex.pos = base.center;
     vertex.norm = base.center - center;
     vertices.push_back(vertex);
     for (int i = 0; i < (int)base.points.size(); i++) {
         Vertex point = base.getPoints().at(i);
         point.id = id++;
-        cgra::mesh_vertex vertex;
+        mesh_vertex vertex;
         vertex.pos = point.pos;
         vertex.norm = point.pos - center;
         vertices.push_back(vertex);
@@ -325,7 +325,7 @@ cgra::gl_mesh Turtle::cylinder(Circle base, Circle branch){
     for (int i = 0; i < (int)branch.points.size(); i++) {
         Vertex point = branch.getPoints().at(i);
         point.id = id++;
-        cgra::mesh_vertex vertex;
+        mesh_vertex vertex;
         vertex.pos = point.pos;
         vertex.norm = point.pos - center;
         vertices.push_back(vertex);
@@ -370,7 +370,7 @@ cgra::gl_mesh Turtle::cylinder(Circle base, Circle branch){
         }
     }
 
-    cgra::mesh_builder builder;
+    mesh_builder builder;
     builder.indices = indices;
     builder.vertices = vertices;
     builder.mode = GL_TRIANGLES;
