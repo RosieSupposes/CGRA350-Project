@@ -5,6 +5,9 @@ set(sources
 	"basic_model.hpp"
 	"basic_model.cpp"
 
+	"camera.hpp"
+	"camera.cpp"
+
 	"CMakeLists.txt"
 )
 

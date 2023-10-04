@@ -27,7 +27,7 @@ add_subdirectory(cgra)
 add_subdirectory(Fireflies)
 add_subdirectory(Trees)
 add_subdirectory(WaterSim)
-add_subdirectory(Simple)
+add_subdirectory(Other)
 
 #########################################################
 # Link and Build Executable

@@ -10,7 +10,8 @@
 #include "cgra/cgra_mesh.hpp" //Is this necessary?
 
 #include "Fireflies/firefly_cluster.hpp"
-#include "Simple/basic_model.hpp"
+#include "Other/basic_model.hpp"
+#include "Other/camera.hpp"
 #include "WaterSim/water_sim.hpp"
 #include "Trees/forest.hpp"
 
@@ -24,11 +25,6 @@ private:
 	glm::vec2 m_windowsize;
 	GLFWwindow *m_window;
 
-	// oribital camera
-	float m_pitch = .86;
-	float m_yaw = -.86;
-	float m_distance = 20;
-
 	// last input
 	bool m_leftMouseDown = false;
 	glm::vec2 m_mousePosition;
@@ -41,6 +37,9 @@ private:
 	//Framerate limiting
 	double max_frames = -1;
 	std::vector<double> frames;
+
+	//Camera
+	camera m_camera;
 
 	//Style
 	const char* styles[3] = { "PBR", "Sketched", "Pixel"};
@@ -84,6 +83,8 @@ private:
 	void simulateWater();
 
 	void WrapUpFrame(double start_time);
+
+	void adjustFocalPoint(vec3 amount, bool setAbsolute);
 	
 	void readSettings();
 	void loadShaders(const char* type);
