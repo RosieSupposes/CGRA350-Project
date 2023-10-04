@@ -4,6 +4,8 @@ set(sources
 
 	"water_sim.hpp"
 	"water_sim.cpp"
+	"water_particle.hpp"
+	"water_particle.cpp"
 
 	"CMakeLists.txt"
 )
