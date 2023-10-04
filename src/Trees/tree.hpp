@@ -1,8 +1,5 @@
 #pragma once
 
-//std
-#include <random>
-
 // glm
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -45,7 +42,7 @@ private:
     //int depth = 3;
     int resolution = 3;
     
-    mt19937 randomNumberGenerator;
+    //mt19937 randomNumberGenerator;
     //unsigned int seed;
     //random_device rd;
 
