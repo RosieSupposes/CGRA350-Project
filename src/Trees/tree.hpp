@@ -41,10 +41,6 @@ private:
     string axiom;
     //int depth = 3;
     int resolution = 3;
-    
-    //mt19937 randomNumberGenerator;
-    //unsigned int seed;
-    //random_device rd;
 
 public:
     tree(glm::mat4 transform, int recursion_depth, string style);

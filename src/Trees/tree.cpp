@@ -55,18 +55,20 @@ tree::tree(glm::mat4 transform, int recursion_depth, string style){
     random_device rd;
     mt19937 randomNumberGenerator(rd());
     uniform_real_distribution<float> scaleDistribution(minScale, maxScale);
+    uniform_real_distribution<float> rotationDistribution(0.0f, 2.0f * pi<float>());
     float randomScale = scaleDistribution(randomNumberGenerator);
+    float randomRotation = rotationDistribution(randomNumberGenerator);
 
     //turtle to make the tree mesh - populate cylinder models
     string command = turtle.getCommand(axiom, recursion_depth);
     vector<gl_mesh> cylinders = turtle.generateMesh(command, resolution, randomNumberGenerator);
     for (int i = 0; i < (int)cylinders.size(); i++) {
         cylinder_model model = cylinder_model();
-        if(style == "Basic"){
-            model.modelTransform = transform * scale(mat4(1), vec3(randomScale));
-        } else{
-            model.modelTransform = transform * scale(mat4(1), vec3(randomScale));
-        }
+        
+        //random scaling and rotation
+        model.modelTransform = transform * scale(mat4(1), vec3(randomScale));
+        model.modelTransform = rotate(model.modelTransform, randomRotation, vec3(0, 1, 0));
+        
         //model.shader = shader;
         model.mesh = cylinders.at(i);
         cylinder_models.push_back(model);
@@ -76,6 +78,7 @@ tree::tree(glm::mat4 transform, int recursion_depth, string style){
 
 void tree::draw(const mat4 &view, const mat4 &proj, GLuint shader) {
     for (int i = 0; i < (int)cylinder_models.size(); i++) {
+        //draw cylinders a little higher on the plane
         cylinder_models.at(i).draw(translate(view, vec3(0, 0.5, 0)), proj, shader);
     }
 }  
