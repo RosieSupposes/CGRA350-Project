@@ -39,11 +39,6 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 
 void Application::loadShaders(const char * type){
 	string style = std::string(type);
-	std::cout << style << std::endl;
-	//Check for contains long term, this is hack for now
-	//if("PBR", "Sketched", "Pixel"){
-	//	style = std::string("color");
-	//}
 
 	shader_builder water_sb, tree_sb, firefly_sb, simple_water_sb;
 	string file_head = CGRA_SRCDIR + std::string("//res//shaders//") + style;
@@ -72,6 +67,9 @@ void Application::render() {
 	m_windowsize = vec2(width, height); // update window size
 	glViewport(0, 0, width, height); // set the viewport to draw to the entire window
 
+	//Update camera
+	m_camera.updateProjection(width, height);
+	m_camera.update();
 	// clear the back-buffer
 	glClearColor(0.3f, 0.3f, 0.4f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
@@ -80,14 +78,9 @@ void Application::render() {
 	glEnable(GL_DEPTH_TEST); 
 	glDepthFunc(GL_LESS);
 
-	// projection matrix
-	mat4 proj = perspective(1.f, float(width) / height, 0.1f, 1000.f);
-
-	// view matrix
-	mat4 view = translate(mat4(1), vec3(0, 0, -m_distance))
-		* rotate(mat4(1), m_pitch, vec3(1, 0, 0))
-		* rotate(mat4(1), m_yaw,   vec3(0, 1, 0));
-
+	mat4 proj = m_camera.getProjection();
+	mat4 view = m_camera.getView();
+	
 
 	// helpful draw options
 	if (m_show_grid) drawGrid(view, proj);
@@ -178,9 +171,8 @@ void Application::renderGUI() {
 
 	// display current camera parameters
 	ImGui::Text("Application %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	ImGui::SliderFloat("Pitch", &m_pitch, -pi<float>() / 2, pi<float>() / 2, "%.2f");
-	ImGui::SliderFloat("Yaw", &m_yaw, -pi<float>(), pi<float>(), "%.2f");
-	ImGui::SliderFloat("Distance", &m_distance, 0, 100, "%.2f", 2.0f);
+	ImGui::SliderFloat("Pitch", &(m_camera.m_pitch), -pi<float>() / 2, pi<float>() / 2, "%.2f");
+	ImGui::SliderFloat("Yaw", &(m_camera.m_yaw), -pi<float>(), pi<float>(), "%.2f");
 	
 	//OPTIONS
 	ImGui::Text("OPTIONS");
@@ -226,15 +218,15 @@ void Application::cursorPosCallback(double xpos, double ypos) {
 		vec2 whsize = m_windowsize / 2.0f;
 
 		// clamp the pitch to [-pi/2, pi/2]
-		m_pitch += float(acos(glm::clamp((m_mousePosition.y - whsize.y) / whsize.y, -1.0f, 1.0f))
+		m_camera.m_pitch += float(acos(glm::clamp((m_mousePosition.y - whsize.y) / whsize.y, -1.0f, 1.0f))
 			- acos(glm::clamp((float(ypos) - whsize.y) / whsize.y, -1.0f, 1.0f)));
-		m_pitch = float(glm::clamp(m_pitch, -pi<float>() / 2, pi<float>() / 2));
+		m_camera.m_pitch = float(glm::clamp(m_camera.m_pitch, -pi<float>() / 2, pi<float>() / 2));
 
 		// wrap the yaw to [-pi, pi]
-		m_yaw += float(acos(glm::clamp((m_mousePosition.x - whsize.x) / whsize.x, -1.0f, 1.0f))
+		m_camera.m_yaw += float(acos(glm::clamp((m_mousePosition.x - whsize.x) / whsize.x, -1.0f, 1.0f))
 			- acos(glm::clamp((float(xpos) - whsize.x) / whsize.x, -1.0f, 1.0f)));
-		if (m_yaw > pi<float>()) m_yaw -= float(2 * pi<float>());
-		else if (m_yaw < -pi<float>()) m_yaw += float(2 * pi<float>());
+		if (m_camera.m_yaw > pi<float>()) m_camera.m_yaw -= float(2 * pi<float>());
+		else if (m_camera.m_yaw < -pi<float>()) m_camera.m_yaw += float(2 * pi<float>());
 	}
 
 	// updated mouse position
@@ -253,12 +245,69 @@ void Application::mouseButtonCallback(int button, int action, int mods) {
 
 void Application::scrollCallback(double xoffset, double yoffset) {
 	(void)xoffset; // currently un-used
-	m_distance *= pow(1.1f, -yoffset);
+	m_camera.move(vec3(0,0,2) * (float)(sign(yoffset) * pow(1.1f, -yoffset)));
 }
 
+enum keys{
+	A = 65,
+	D = 68,
+	S = 83,
+	W = 87,
+	UP = 265,
+	DOWN = 264,
+	LEFT = 263,
+	RIGHT = 262
+};
 
 void Application::keyCallback(int key, int scancode, int action, int mods) {
+	std::cout << key << std::endl;
+	float moveSpeed = 1;
+	switch ((keys)key)
+	{
+	case A:
+		std::cout << "A" << std::endl;
+		adjustFocalPoint(vec3(1,0,0), false);
+		break;
+	case D:
+		std::cout << "D" << std::endl;
+		adjustFocalPoint(vec3(-1,0,0), false);
+		break;
+	case S:
+		std::cout << "S" << std::endl;
+		adjustFocalPoint(vec3(0,0,-1), false);
+		break;
+	case W:
+		std::cout << "W" << std::endl;
+		adjustFocalPoint(vec3(0,0,1), false);
+		break;
+	case UP:
+		std::cout << "UP" << std::endl;
+		adjustFocalPoint(vec3(0,0,1), false);
+		break;
+	case DOWN:
+		std::cout << "DOWN" << std::endl;
+		adjustFocalPoint(vec3(0,0,-1), false);
+		break;
+	case LEFT:
+		std::cout << "LEFT" << std::endl;
+		adjustFocalPoint(vec3(1,0,0), false);
+		break;
+	case RIGHT:
+		std::cout << "RIGHT" << std::endl;
+		adjustFocalPoint(vec3(-1,0,0), false);
+		break;
+	default:
+		break;
+	}
 	(void)key, (void)scancode, (void)action, (void)mods; // currently un-used
+}
+
+void Application::adjustFocalPoint(vec3 amount, bool setAbsolute){
+	if(setAbsolute){
+		m_camera.move(amount);
+	}else{
+		m_camera.move(amount);
+	}
 }
 
 
