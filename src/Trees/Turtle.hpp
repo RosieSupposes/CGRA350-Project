@@ -14,6 +14,7 @@
 
 using namespace std;
 using namespace glm;
+using namespace cgra;
 
 /*
 Turtle Language:
@@ -112,6 +113,6 @@ public:
     void loadRules(vector<string> rules); //populates ruleList
     Expression parseExpression(string token); //generates an EXP
     string getCommand(string axiom, int depth); //get commands (outputs) of rules
-    vector<cgra::gl_mesh> generateMesh(string command, int resolution, mt19937 randomNumberGenerator); //generate mesh
-    cgra::gl_mesh cylinder(Circle base, Circle branch); //generate a cyliner mesh
+    vector<gl_mesh> generateMesh(string command, int resolution, mt19937 randomNumberGenerator); //generate mesh
+    gl_mesh cylinder(Circle base, Circle branch); //generate a cyliner mesh
 };
