@@ -221,7 +221,6 @@ void firefly_cluster::renderGUI(int height, int pos) {
 	ImGui::Begin("Fireflies", 0);
 
 	ImGui::Text("Fireflies");
-	int fireflyCount = 100;
 	if (ImGui::InputInt("Fireflies", &fireflyCount)) {
 		this->reload(fireflyCount);
 	}
