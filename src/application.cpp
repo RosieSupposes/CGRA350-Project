@@ -35,6 +35,9 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	trees = forest(treeCount, recursion_depth, std::string(tree_styles[0]));
 	basic_water = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//simple_water.obj"), vec3(0.0,0.9,0.9));
 	terrain = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//land.obj"), scale(mat4(1), vec3(8)));
+
+	//TODO uncomment when water_sim constructor matches this:
+	//water = water_sim(water_shader, &boundDamping, &restDensity, &gasConstant, &viscosity, &particleMass, &smoothingRadius, &timeStep); 
 }
 
 void Application::loadShaders(const char * type){
@@ -163,10 +166,12 @@ void Application::simulateWater(){
 }
 
 void Application::renderGUI() {
-
+	int gap = 5;
+	int mainWindowPos = gap;
+	int mainWindowHeight = 160;
 	// setup window
-	ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiSetCond_Once);
-	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiSetCond_Once);
+	ImGui::SetNextWindowPos(ImVec2(5, mainWindowPos), ImGuiSetCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(300, mainWindowHeight), ImGuiSetCond_Once);
 	ImGui::Begin("Options", 0);
 
 	// display current camera parameters
@@ -177,27 +182,7 @@ void Application::renderGUI() {
 	//OPTIONS
 	ImGui::Text("OPTIONS");
 
-	ImGui::Text("Style");
-	static int selected_style = 0; // If the selection isn't within 0..count, Combo won't display a preview
-    if(ImGui::Combo("Style", &selected_style, styles, sizeof(styles)/sizeof(*styles))){
-		loadShaders(styles[selected_style]);
-	}
 
-	ImGui::Text("Water");
-	ImGui::Checkbox("Water Sim Enabled", &water_sim_enabled);
-	ImGui::Text("Fireflies");
-	if (ImGui::InputInt("Fireflies", &fireflyCount)) {
-		fireflies.reload(fireflyCount);
-	}
-	ImGui::Text("Trees");
-	static int selected_tree_style = 0;
-	bool tree_style_changed = ImGui::Combo("Tree style", &selected_tree_style, tree_styles, sizeof(tree_styles)/sizeof(*tree_styles));
-	bool tree_count_changed = ImGui::InputInt("Trees", &treeCount);
-	bool tree_depth_changed = ImGui::InputInt("Recursion Depth", &recursion_depth);
-	if(tree_style_changed || tree_count_changed || tree_depth_changed){
-		string style = std::string(tree_styles[selected_tree_style]);
-		trees.reload(treeCount, recursion_depth, std::string(style));
-	}
 
 	ImGui::Separator();
 	// helpful drawing options
@@ -208,11 +193,78 @@ void Application::renderGUI() {
 	ImGui::SameLine();
 	if (ImGui::Button("Screenshot")) rgba_image::screenshot(true);
 
-	
-	
-
-
 	// finish creating window
+	ImGui::End();
+
+	int fireflyWindowHeight = 100;
+	int fireflyWindowPos = mainWindowPos + mainWindowHeight + gap;
+	fireflies.renderGUI(fireflyWindowHeight, fireflyWindowPos);
+
+	int shaderWindowHeight = 75; //can change height here if you add more controls
+	int shaderWindowPos = fireflyWindowPos + fireflyWindowHeight + gap;
+	renderShaderGUI(shaderWindowHeight, shaderWindowPos);
+
+	int treesWindowHeight = 125; //can change height here if you add more controls
+	int treesWindowPos = shaderWindowPos + shaderWindowHeight + gap;
+	renderTreesGUI(treesWindowHeight, treesWindowPos);
+	//TODO steal the renderTreesGUI function from down below and move it into the forest class, 
+	//trees.renderGUI(treesWindowHeight, treesWindowPos);
+
+	int waterWindowHeight = 230; //can change height here if you add more controls
+	int waterWindowPos = treesWindowPos + treesWindowHeight + gap;
+	renderWaterGUI(waterWindowHeight, waterWindowPos);
+	//TODO steal the renderWaterGUI function from down below and move it into the forest class, 
+	//water.renderGUI(treesWindowHeight, treesWindowPos);
+}
+
+void Application::renderShaderGUI(int height, int pos) {
+	ImGui::SetNextWindowPos(ImVec2(5, pos), ImGuiSetCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(300, height), ImGuiSetCond_Once);
+	ImGui::Begin("Style", 0);
+
+	ImGui::Text("Style");
+	static int selected_style = 0; // If the selection isn't within 0..count, Combo won't display a preview
+	if (ImGui::Combo("Style", &selected_style, styles, sizeof(styles) / sizeof(*styles))) {
+		loadShaders(styles[selected_style]);
+	}
+
+	ImGui::End();
+}
+
+void Application::renderTreesGUI(int height, int pos) {
+	ImGui::SetNextWindowPos(ImVec2(5, pos), ImGuiSetCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(300, height), ImGuiSetCond_Once);
+	ImGui::Begin("Trees", 0);
+
+	ImGui::Text("Trees");
+	static int selected_tree_style = 0;
+	bool tree_style_changed = ImGui::Combo("Tree style", &selected_tree_style, tree_styles, sizeof(tree_styles) / sizeof(*tree_styles));
+	bool tree_count_changed = ImGui::InputInt("Trees", &treeCount);
+	bool tree_depth_changed = ImGui::InputInt("Recursion Depth", &recursion_depth);
+	if (tree_style_changed || tree_count_changed || tree_depth_changed) {
+		string style = std::string(tree_styles[selected_tree_style]);
+		trees.reload(treeCount, recursion_depth, std::string(style));
+	}
+
+	ImGui::End();
+}
+
+void Application::renderWaterGUI(int height, int pos) {
+	ImGui::SetNextWindowPos(ImVec2(5, pos), ImGuiSetCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(300, height), ImGuiSetCond_Once);
+	ImGui::Begin("Water", 0);
+
+	ImGui::Text("Water");
+	ImGui::Checkbox("Water Sim Enabled", &water_sim_enabled);
+	
+	ImGui::InputFloat("Bound Damping", &boundDamping, 0.0f, 0.0f, 2); //boundDamping (-0.3)
+	ImGui::InputFloat("Rest Density", &restDensity, 0.0f, 0.0f, 1); //restDensity (1.0)
+	ImGui::InputFloat("Gas", &gasConstant, 0.0f, 0.0f, 1);  //gasConstant (2.0)
+	ImGui::InputFloat("Viscosity", &viscosity, 0.0f, 0.0f, 4); //viscosity (-0.003)
+	ImGui::InputFloat("Particle Mass", &particleMass, 0.0f, 0.0f, 1); //particleMass (1.0)
+	ImGui::InputFloat("Smoothing Radius", &smoothingRadius, 0.0f, 0.0f, 1); //smoothingRadius (1.0)
+	ImGui::InputFloat("Time Step", &timeStep, 0.0f, 0.0f, 4); //timeStep (0.001)
+
 	ImGui::End();
 }
 
