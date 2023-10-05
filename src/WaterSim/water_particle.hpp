@@ -34,30 +34,19 @@ namespace {
 }
 
 
-class Particle {
+struct Particle {
     public:
-        float pressure;
-        float density;
-        float viscosity;
-        float radius;
-        float range;
-        float gravity;
-        float mass;
+        float pressure = 0.00001f;
+        float density = 0.00001f;
+        float mass = 1.0f;
 
-        glm::vec3 currentForce;
-        glm::vec3 position;
-        glm::vec3 velocity;
+        glm::vec3 currentForce = glm::vec3(0,0,0);
+        glm::vec3 position = glm::vec3(0,0,0);
+        glm::vec3 velocity  = glm::vec3(0,0,0);
 
-        glm::vec3 color;
+        glm::vec3 color = glm::vec3(0,0,1);
 
-        std::vector<Particle*> neighbours;
-
-        Particle();
-        void simulate(float timestep);
         void draw(const glm::mat4 &view, const glm::mat4 &proj, GLuint shader);\
-
-        float compute_density();
-        float compute_pressure(float density);
 };
 
 void drawSphere();

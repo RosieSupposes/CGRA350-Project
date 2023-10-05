@@ -2,25 +2,53 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "cgra/cgra_wavefront.hpp"
 #include "cgra/cgra_geometry.hpp"
+#include <cstdlib> 
 
 using namespace std;
 using namespace glm;
 using namespace cgra;
 
 water_sim::water_sim(){
-	for (int x = 0; x < 5; x++){
-		for (int y = 0; y < 5; y++){
-			for (int z = 0; z < 5; z++){
-				create_particle(vec3(-10 + x * 4, -10 + y * 4, -10 + z * 4));
+	for (int x = 0; x < 30; x++){
+		for (int y = 0; y < 10; y++){
+			for (int z = 0; z < 30; z++){
+				vec3 random = vec3((float) rand()/RAND_MAX, (float) rand()/RAND_MAX, (float) rand()/RAND_MAX);
+				create_particle(vec3(-10 + x * 2, 40 + y * 2, -10 + z * 2) + random);
 			}
 		}
+	}
+	for (int i = 0; i < (int)particles.size(); i++){
+		Particle &p = particles[i];
+		// Calculate Density
+		calculate_density(p);
+
+		// Calculate Pressure
+		calculate_pressure(p);
 	}
 }
 
 void water_sim::simulate(){
+	if (count >= 5){
+		count = 0;
+		create_particle(vec3(0, (topRight.y - bottomLeft.y) / 2.0f, 0));
+	}
 	for (int i = 0; i < (int)particles.size(); i++){
-		particles[i].simulate(timestep);
-		manageBoundry(particles[i].velocity, particles[i].position);
+		Particle &p = particles[i];
+		// Calculate Density
+		calculate_density(p);
+
+		// Calculate Pressure
+		calculate_pressure(p);
+		// Calculate Forces
+		p.currentForce = calculate_forces(p);
+	}
+
+	// Update Positions
+	for (int i = 0; i < (int)particles.size(); i++){
+		Particle &p = particles[i];
+		p.velocity += (p.currentForce / p.mass) * timestep;
+		p.position += p.velocity * timestep;
+		manage_boundry(particles[i].velocity, particles[i].position);
 	}
 }
 
@@ -31,39 +59,139 @@ void water_sim::draw(const mat4 &view, const mat4 &proj, GLuint shader) {
 		particles[i].draw(view, proj, shader);
 	}
 
-
+	// draw bounding box
+	draw_boundary(view, proj, shader);
 } 
 
-void water_sim::create_particle(glm::vec3 position){
-	Particle p;
-	p.position = position;
-	p.neighbours.push_back(&p);
-	particles.push_back(p);
+void water_sim::draw_boundary(const mat4 &view, const mat4 &proj, GLuint shader){
+	// draw bounding box
+	glUseProgram(shader);
+	mat4 modelview = view * mat4(1);
+	glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(proj));
+	glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(modelview));
+	glUniform3f(glGetUniformLocation(shader, "uColor"), 1, 1, 1);
+	glLineWidth(2);
+	glBegin(GL_LINES);
+	// bottom
+	glVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
+	glVertex3f(topRight.x, bottomLeft.y, bottomLeft.z);
+	glVertex3f(topRight.x, bottomLeft.y, bottomLeft.z);
+	glVertex3f(topRight.x, bottomLeft.y, topRight.z);
+	glVertex3f(topRight.x, bottomLeft.y, topRight.z);
+	glVertex3f(bottomLeft.x, bottomLeft.y, topRight.z);
+	glVertex3f(bottomLeft.x, bottomLeft.y, topRight.z);
+	glVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
+	// top
+	glVertex3f(bottomLeft.x, topRight.y, bottomLeft.z);
+	glVertex3f(topRight.x, topRight.y, bottomLeft.z);
+	glVertex3f(topRight.x, topRight.y, bottomLeft.z);
+	glVertex3f(topRight.x, topRight.y, topRight.z);
+	glVertex3f(topRight.x, topRight.y, topRight.z);
+	glVertex3f(bottomLeft.x, topRight.y, topRight.z);
+	glVertex3f(bottomLeft.x, topRight.y, topRight.z);
+	glVertex3f(bottomLeft.x, topRight.y, bottomLeft.z);
+	// sides
+	glVertex3f(bottomLeft.x, bottomLeft.y, bottomLeft.z);
+	glVertex3f(bottomLeft.x, topRight.y, bottomLeft.z);
+	glVertex3f(topRight.x, bottomLeft.y, bottomLeft.z);
+	glVertex3f(topRight.x, topRight.y, bottomLeft.z);
+	glVertex3f(topRight.x, bottomLeft.y, topRight.z);
+	glVertex3f(topRight.x, topRight.y, topRight.z);
+	glVertex3f(bottomLeft.x, bottomLeft.y, topRight.z);
+	glVertex3f(bottomLeft.x, topRight.y, topRight.z);
+	glEnd();
 }
 
-void water_sim::manageBoundry(vec3 &vel, vec3 &position){
-    if (position.x - 1 < bottomLeft.x){
+Particle* water_sim::create_particle(glm::vec3 position){
+	Particle p;
+	p.position = position;
+	p.mass = particleMass;
+	p.color = vec3(0, 0, 1);
+	particles.push_back(p);
+	return &p;
+}
+
+void water_sim::manage_boundry(vec3 &vel, vec3 &position){
+    if (position.x - 0.5 < bottomLeft.x){
         vel.x *= boundDamping;
-        position.x = bottomLeft.x + 1;
+        position.x = bottomLeft.x + 2;
     }
-	if (position.x + 1 > topRight.x){
+	if (position.x + 0.5 > topRight.x){
 		vel.x *= boundDamping;
-		position.x = topRight.x - 1;
+		position.x = topRight.x - 2;
 	}
-	if (position.y - 1 < bottomLeft.y){
+	if (position.y - 0.5 < bottomLeft.y){
 		vel.y *= boundDamping;
-		position.y = bottomLeft.y + 1;
+		position.y = bottomLeft.y + 2;
 	}
-	if (position.y + 1 > topRight.y){
+	if (position.y + 0.5 > topRight.y){
 		vel.y *= boundDamping;
-		position.y = topRight.y - 1;
+		position.y = topRight.y - 2;
 	}
-	if (position.z - 1 < bottomLeft.z){
+	if (position.z - 0.5 < bottomLeft.z){
 		vel.z *= boundDamping;
-		position.z = bottomLeft.z + 1;
+		position.z = bottomLeft.z + 2;
 	}
-	if (position.z + 1 > topRight.z){
+	if (position.z + 0.5 > topRight.z){
 		vel.z *= boundDamping;
-		position.z = topRight.z - 1;
+		position.z = topRight.z - 2;
 	}
+}
+
+void water_sim::calculate_density(Particle &particle){
+	float density = 0.0f;
+	for (int i = 0; i < (int)particles.size(); i++){
+		Particle &n = particles[i];
+		float r = distance(particle.position, n.position);
+		density += n.mass * poly6_kernel(r, smoothingRadius);
+	}
+	particle.density = density;
+}
+
+void water_sim::calculate_pressure(Particle &particle){
+	particle.pressure = gasConstant * (particle.density - restDensity);
+}
+
+vec3 water_sim::calculate_forces(Particle &particle){
+	vec3 pressureForce = vec3(0, 0, 0);
+	vec3 viscosityForce = vec3(0, 0, 0);
+
+	for (int i = 0; i < (float)particles.size(); i++){
+		Particle &n = particles[i];
+		if (&particle == &n) continue;
+		float r = distance(particle.position, n.position);
+		if (r > smoothingRadius * 2) continue;
+
+		// Pressure Force
+		vec3 dir = normalize(particle.position - n.position);
+		pressureForce += spiky_gradient(r, dir) * (float)(particle.pressure / pow(particle.density, 2) + n.pressure / pow(n.density, 2));
+
+		// Viscosity Force
+		viscosityForce += viscosity * (n.velocity - particle.velocity) / n.density * spiky_kernel2(r, smoothingRadius);
+	}
+	return pressureForce + viscosityForce + vec3(0, -9.8f, 0);
+}
+
+float water_sim::poly6_kernel(float r, float h){
+	if (r >= 0 && r <= h) {
+        float coeff = 315.0f / (64.0f * 3.141592f * h*h*h*h*h*h*h*h*h);
+        float q = (h*h - r*r);
+        return coeff * q * q * q;
+    } else {
+        return 0.00000001f;
+    }
+}
+
+float water_sim::spiky_kernel(float r, float h){
+	float value = -45.0f / (3.141592f * (float)pow(h, 4)) * (float)pow(1-r/h, 2);
+	return value;
+}
+
+float water_sim::spiky_kernel2(float r, float h){
+	float value = -90.0f / (3.141592f * (float)pow(h, 5)) * (1-r/h);
+	return value;
+}
+
+vec3 water_sim::spiky_gradient(float r, vec3 dir){
+	return spiky_kernel(r, smoothingRadius) * dir;
 }

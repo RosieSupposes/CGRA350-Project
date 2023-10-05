@@ -8,28 +8,6 @@ using namespace std;
 using namespace glm;
 using namespace cgra;
 
-Particle::Particle(){
-    pressure = 0;
-    density = 1000;
-    mass = 1;
-    viscosity = 0.1f;
-    radius = 0.1f;
-    gravity = -9.81;
-    range = 5;
-
-    color = vec3(0,0.2f,0.7f);
-    currentForce = vec3(0,0,0);
-    position = vec3(0,0,0);
-    velocity = vec3(1,0,0);
-}
-
-void Particle::simulate(float timestep){
-    currentForce = vec3(0,gravity * mass,0);
-    vec3 current_velocity = velocity + (currentForce / mass);
-    position += current_velocity * timestep;
-    velocity = current_velocity;
-}
-
 void Particle::draw(const mat4 &view, const mat4 &proj, GLuint shader){
     mat4 modelview = view;
     modelview = translate(modelview, position);
