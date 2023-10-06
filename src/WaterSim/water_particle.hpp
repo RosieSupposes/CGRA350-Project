@@ -1,6 +1,7 @@
 #pragma once
 
 #include "opengl.hpp"
+#include "Other/material.hpp"
 #include <iostream>
 #include <glm/glm.hpp>
 #include <vector>
@@ -44,9 +45,7 @@ struct Particle {
         glm::vec3 position = glm::vec3(0,0,0);
         glm::vec3 velocity  = glm::vec3(0,0,0);
 
-        glm::vec3 color = glm::vec3(0,0,1);
-
-        void draw(const glm::mat4 &view, const glm::mat4 &proj, GLuint shader);\
+        void draw(const glm::mat4 &view, const glm::mat4 &proj, material &material);\
 };
 
 void drawSphere();

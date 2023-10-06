@@ -9,6 +9,7 @@
 #include "opengl.hpp"
 #include "cgra/cgra_mesh.hpp"
 #include "water_particle.hpp"
+#include "Other/material.hpp"
 
 
 class water_sim {
@@ -37,8 +38,8 @@ public:
     glm::vec3 spiky_gradient(float r, glm::vec3 dir);
 
 
-	void draw(const glm::mat4 &view, const glm::mat4 &proj, GLuint shader);
-    void draw_boundary(const glm::mat4 &view, const glm::mat4 &proj, GLuint shader);
+	void draw(const glm::mat4 &view, const glm::mat4 &proj, material &material);
+    void draw_boundary(const glm::mat4 &view, const glm::mat4 &proj, material &material);
 
     // Settings
     glm::vec3 bottomLeft = glm::vec3(-100, 0, -100);

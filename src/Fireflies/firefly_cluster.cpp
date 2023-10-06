@@ -12,7 +12,6 @@ using namespace glm;
 using namespace std;
 
 firefly_cluster::firefly_cluster(int count) {
-	sharedMesh = cgra::load_wavefront_data(CGRA_SRCDIR + std::string("/res//assets//placeholderSphere.obj")).build();
 	reload(count);
 	min_bounds = vec3(-20, 5, -20);
 	max_bounds = vec3(20, 10, 20);
@@ -208,10 +207,10 @@ void firefly_cluster::get_closest_fireflies(firefly& f) {
 	}
 }
 
-void firefly_cluster::draw(const mat4& view, const mat4& proj, GLuint shader) {
+void firefly_cluster::draw(const mat4& view, const mat4& proj, material &material) {
 	//cout << fireflies[0].pos.x << "," << fireflies[0].pos.y << "," << fireflies[0].pos.z << endl;
 	for (firefly ff : fireflies) {
-		ff.draw(view, proj, shader);
+		ff.draw(view, proj, material);
 	}
 }
 

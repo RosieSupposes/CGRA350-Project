@@ -10,26 +10,26 @@ basic_model::basic_model(){
 	
 }
 
-basic_model::basic_model(GLuint shader, std::string file){
-	m_shader = shader;
+basic_model::basic_model(material material, std::string file){
+	m_material = material;
 	m_mesh = cgra::load_wavefront_data(file).build();
 }
 
-basic_model::basic_model(GLuint shader, std::string file, vec3 colour){
-	m_shader = shader;
+basic_model::basic_model(material material, std::string file, vec3 colour){
+	m_material = material;
 	m_mesh = cgra::load_wavefront_data(file).build();
 	m_color = colour;
 }
 
-basic_model::basic_model(GLuint shader, std::string file, mat4 transform){
+basic_model::basic_model(material material, std::string file, mat4 transform){
 	m_modelTransform = transform;
-	m_shader = shader;
+	m_material = material;
 	m_mesh = cgra::load_wavefront_data(file).build();
 }
 
-basic_model::basic_model(GLuint shader, std::string file, mat4 transform, vec3 colour){
+basic_model::basic_model(material material, std::string file, mat4 transform, vec3 colour){
 	m_modelTransform = transform;
-	m_shader = shader;
+	m_material = material;
 	m_mesh = cgra::load_wavefront_data(file).build();
 	m_color = colour;
 }
@@ -37,9 +37,6 @@ basic_model::basic_model(GLuint shader, std::string file, mat4 transform, vec3 c
 void basic_model::draw(const mat4 &view, const mat4 &proj) {
 	// set up the shader for every draw call
     mat4 modelview = view * m_modelTransform;
-	glUseProgram(m_shader); // load shader and variables
-	glUniformMatrix4fv(glGetUniformLocation(m_shader, "uProjectionMatrix"), 1, false, value_ptr(proj));
-	glUniformMatrix4fv(glGetUniformLocation(m_shader, "uModelViewMatrix"), 1, false, value_ptr(modelview));
-	glUniform3fv(glGetUniformLocation(m_shader, "uColor"), 1, value_ptr(m_color));
+	m_material.load(modelview, proj);
 	m_mesh.draw();
 } 

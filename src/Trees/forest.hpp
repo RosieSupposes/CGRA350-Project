@@ -8,6 +8,7 @@
 #include "opengl.hpp"
 #include "cgra/cgra_mesh.hpp"
 #include "tree.hpp"
+#include "Other/material.hpp"
 
 class forest {
 private:
@@ -19,5 +20,5 @@ public:
     forest(int count, int recursion_depth, string style);
     void reload(int count, int recursion_depth, string style);
     void simulate();
-	void draw(const glm::mat4 &view, const glm::mat4 &proj, GLuint shader);
+	void draw(const glm::mat4 &view, const glm::mat4 &proj, material &trunk_material, material &tree_material);
 };  

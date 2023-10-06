@@ -54,22 +54,19 @@ void water_sim::simulate(){
 
 void water_sim::reload(){}
 
-void water_sim::draw(const mat4 &view, const mat4 &proj, GLuint shader) {
+void water_sim::draw(const mat4 &view, const mat4 &proj, material &material) {
 	for (int i = 0; i < (int)particles.size(); i++){
-		particles[i].draw(view, proj, shader);
+		particles[i].draw(view, proj, material);
 	}
 
 	// draw bounding box
 	//draw_boundary(view, proj, shader);
 } 
 
-void water_sim::draw_boundary(const mat4 &view, const mat4 &proj, GLuint shader){
+void water_sim::draw_boundary(const mat4 &view, const mat4 &proj, material &material){
 	// draw bounding box
-	glUseProgram(shader);
 	mat4 modelview = view * mat4(1);
-	glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(proj));
-	glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(modelview));
-	glUniform3f(glGetUniformLocation(shader, "uColor"), 1, 1, 1);
+	material.load(modelview, proj);
 	glLineWidth(2);
 	glBegin(GL_LINES);
 	// bottom
@@ -106,7 +103,6 @@ Particle* water_sim::create_particle(glm::vec3 position){
 	Particle p;
 	p.position = position;
 	p.mass = particleMass;
-	p.color = vec3(0, 0, 1);
 	particles.push_back(p);
 	return &p;
 }

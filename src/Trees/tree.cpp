@@ -76,10 +76,10 @@ tree::tree(glm::mat4 transform, int recursion_depth, string style){
     
 }
 
-void tree::draw(const mat4 &view, const mat4 &proj, GLuint shader) {
+void tree::draw(const mat4 &view, const mat4 &proj, material &trunk_material, material &leaf_material) {
     for (int i = 0; i < (int)cylinder_models.size(); i++) {
         //draw cylinders a little higher on the plane
-        cylinder_models.at(i).draw(translate(view, vec3(0, 0.5, 0)), proj, shader);
+        cylinder_models.at(i).draw(translate(view, vec3(0, 0.5, 0)), proj, trunk_material);
     }
 }  
  

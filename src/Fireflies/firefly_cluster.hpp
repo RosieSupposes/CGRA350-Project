@@ -10,6 +10,7 @@
 #include "opengl.hpp"
 #include "cgra/cgra_mesh.hpp"
 #include "firefly.hpp"
+#include "Other/material.hpp"
 
 #define Math_E 2.71828
 
@@ -57,7 +58,7 @@ public:
 	firefly_cluster(int count);
 	void reload(int count);
 	void simulate();
-	void draw(const glm::mat4& view, const glm::mat4& proj, GLuint shader);
+	void draw(const glm::mat4& view, const glm::mat4& proj, material &material);
 	void renderGUI(int height, int pos);
 
 };

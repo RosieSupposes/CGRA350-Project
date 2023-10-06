@@ -4,6 +4,10 @@
 uniform mat4 uProjectionMatrix;
 uniform mat4 uModelViewMatrix;
 uniform vec3 uColor;
+uniform float uBrightness;
+uniform sampler2D texture;
+uniform float uMetallic;
+uniform float uRoughness;
 
 // viewspace data (this must match the output of the fragment shader)
 in VertexData {
@@ -19,7 +23,7 @@ void main() {
 	// calculate lighting (hack)
 	vec3 eye = normalize(-f_in.position);
 	float light = abs(dot(normalize(f_in.normal), eye));
-	vec3 color = mix(uColor / 4, uColor, light);
+	vec3 color = mix(uColor / 4, uColor*uBrightness, light);
 	// output to the frambuffer
-	fb_color = vec4(color + 0.5, 1);
+	fb_color = vec4(color, 1);
 }

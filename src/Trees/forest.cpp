@@ -29,8 +29,8 @@ void forest::simulate(){
 	
 }
 
-void forest::draw(const mat4 &view, const mat4 &proj, GLuint shader) {
+void forest::draw(const mat4 &view, const mat4 &proj, material &trunk_material, material &leaf_material) {
 	for(tree t : trees){
-		t.draw(view, proj, shader);
+		t.draw(view, proj, trunk_material, leaf_material);
 	}
 }  
