@@ -66,7 +66,7 @@ void Application::loadShaders(const char * type){
 		GLuint basic_water_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
 		GLuint water_sim_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
 		m_firefly_material = material(shader, firefly_texture, vec3(1,1,0.2));
-		m_trunk_material = material(shader, trunk_texture, vec3(0.8,0.6,0.2));
+		m_trunk_material = material(shader, trunk_texture, vec3(0.4196, 0.2863, 0.1686));
 		m_leaf_material = material(shader, leaf_texture, vec3(0.2,0.8,0.4));
 		m_terrain_material = material(shader, terrain_texture, vec3(0.8,0.4,0.2));
 		m_basic_water_material = material(shader, basic_water_texture, vec3(0.2,0.4,0.8));
