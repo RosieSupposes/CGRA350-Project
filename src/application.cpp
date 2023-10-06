@@ -35,15 +35,13 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	trees = forest(treeCount, recursion_depth, std::string(tree_styles[0]));
 	basic_water = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//simple_water.obj"), vec3(0.0,0.9,0.9));
 	terrain = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//land.obj"), scale(mat4(1), vec3(8)));
+
+	//TODO uncomment when water_sim constructor matches this:
+	//water = water_sim(water_shader, &boundDamping, &restDensity, &gasConstant, &viscosity, &particleMass, &smoothingRadius, &timeStep); 
 }
 
 void Application::loadShaders(const char * type){
 	string style = std::string(type);
-	std::cout << style << std::endl;
-	//Check for contains long term, this is hack for now
-	//if("PBR", "Sketched", "Pixel"){
-	//	style = std::string("color");
-	//}
 
 	shader_builder water_sb, tree_sb, firefly_sb, simple_water_sb;
 	string file_head = CGRA_SRCDIR + std::string("//res//shaders//") + style;
@@ -72,6 +70,9 @@ void Application::render() {
 	m_windowsize = vec2(width, height); // update window size
 	glViewport(0, 0, width, height); // set the viewport to draw to the entire window
 
+	//Update camera
+	m_camera.updateProjection(width, height);
+	m_camera.update();
 	// clear the back-buffer
 	glClearColor(0.3f, 0.3f, 0.4f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
@@ -80,14 +81,9 @@ void Application::render() {
 	glEnable(GL_DEPTH_TEST); 
 	glDepthFunc(GL_LESS);
 
-	// projection matrix
-	mat4 proj = perspective(1.f, float(width) / height, 0.1f, 1000.f);
-
-	// view matrix
-	mat4 view = translate(mat4(1), vec3(0, 0, -m_distance))
-		* rotate(mat4(1), m_pitch, vec3(1, 0, 0))
-		* rotate(mat4(1), m_yaw,   vec3(0, 1, 0));
-
+	mat4 proj = m_camera.getProjection();
+	mat4 view = m_camera.getView();
+	
 
 	// helpful draw options
 	if (m_show_grid) drawGrid(view, proj);
@@ -170,42 +166,23 @@ void Application::simulateWater(){
 }
 
 void Application::renderGUI() {
-
+	int gap = 5;
+	int mainWindowPos = gap;
+	int mainWindowHeight = 160;
 	// setup window
-	ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiSetCond_Once);
-	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiSetCond_Once);
+	ImGui::SetNextWindowPos(ImVec2(5, mainWindowPos), ImGuiSetCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(300, mainWindowHeight), ImGuiSetCond_Once);
 	ImGui::Begin("Options", 0);
 
 	// display current camera parameters
 	ImGui::Text("Application %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	ImGui::SliderFloat("Pitch", &m_pitch, -pi<float>() / 2, pi<float>() / 2, "%.2f");
-	ImGui::SliderFloat("Yaw", &m_yaw, -pi<float>(), pi<float>(), "%.2f");
-	ImGui::SliderFloat("Distance", &m_distance, 0, 100, "%.2f", 2.0f);
+	ImGui::SliderFloat("Pitch", &(m_camera.m_pitch), -pi<float>() / 2, pi<float>() / 2, "%.2f");
+	ImGui::SliderFloat("Yaw", &(m_camera.m_yaw), -pi<float>(), pi<float>(), "%.2f");
 	
 	//OPTIONS
 	ImGui::Text("OPTIONS");
 
-	ImGui::Text("Style");
-	static int selected_style = 0; // If the selection isn't within 0..count, Combo won't display a preview
-    if(ImGui::Combo("Style", &selected_style, styles, sizeof(styles)/sizeof(*styles))){
-		loadShaders(styles[selected_style]);
-	}
 
-	ImGui::Text("Water");
-	ImGui::Checkbox("Water Sim Enabled", &water_sim_enabled);
-	ImGui::Text("Fireflies");
-	if (ImGui::InputInt("Fireflies", &fireflyCount)) {
-		fireflies.reload(fireflyCount);
-	}
-	ImGui::Text("Trees");
-	static int selected_tree_style = 0;
-	bool tree_style_changed = ImGui::Combo("Tree style", &selected_tree_style, tree_styles, sizeof(tree_styles)/sizeof(*tree_styles));
-	bool tree_count_changed = ImGui::InputInt("Trees", &treeCount);
-	bool tree_depth_changed = ImGui::InputInt("Recursion Depth", &recursion_depth);
-	if(tree_style_changed || tree_count_changed || tree_depth_changed){
-		string style = std::string(tree_styles[selected_tree_style]);
-		trees.reload(treeCount, recursion_depth, std::string(style));
-	}
 
 	ImGui::Separator();
 	// helpful drawing options
@@ -216,11 +193,78 @@ void Application::renderGUI() {
 	ImGui::SameLine();
 	if (ImGui::Button("Screenshot")) rgba_image::screenshot(true);
 
-	
-	
-
-
 	// finish creating window
+	ImGui::End();
+
+	int fireflyWindowHeight = 100;
+	int fireflyWindowPos = mainWindowPos + mainWindowHeight + gap;
+	fireflies.renderGUI(fireflyWindowHeight, fireflyWindowPos);
+
+	int shaderWindowHeight = 75; //can change height here if you add more controls
+	int shaderWindowPos = fireflyWindowPos + fireflyWindowHeight + gap;
+	renderShaderGUI(shaderWindowHeight, shaderWindowPos);
+
+	int treesWindowHeight = 125; //can change height here if you add more controls
+	int treesWindowPos = shaderWindowPos + shaderWindowHeight + gap;
+	renderTreesGUI(treesWindowHeight, treesWindowPos);
+	//TODO steal the renderTreesGUI function from down below and move it into the forest class, 
+	//trees.renderGUI(treesWindowHeight, treesWindowPos);
+
+	int waterWindowHeight = 230; //can change height here if you add more controls
+	int waterWindowPos = treesWindowPos + treesWindowHeight + gap;
+	renderWaterGUI(waterWindowHeight, waterWindowPos);
+	//TODO steal the renderWaterGUI function from down below and move it into the forest class, 
+	//water.renderGUI(treesWindowHeight, treesWindowPos);
+}
+
+void Application::renderShaderGUI(int height, int pos) {
+	ImGui::SetNextWindowPos(ImVec2(5, pos), ImGuiSetCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(300, height), ImGuiSetCond_Once);
+	ImGui::Begin("Style", 0);
+
+	ImGui::Text("Style");
+	static int selected_style = 0; // If the selection isn't within 0..count, Combo won't display a preview
+	if (ImGui::Combo("Style", &selected_style, styles, sizeof(styles) / sizeof(*styles))) {
+		loadShaders(styles[selected_style]);
+	}
+
+	ImGui::End();
+}
+
+void Application::renderTreesGUI(int height, int pos) {
+	ImGui::SetNextWindowPos(ImVec2(5, pos), ImGuiSetCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(300, height), ImGuiSetCond_Once);
+	ImGui::Begin("Trees", 0);
+
+	ImGui::Text("Trees");
+	static int selected_tree_style = 0;
+	bool tree_style_changed = ImGui::Combo("Tree style", &selected_tree_style, tree_styles, sizeof(tree_styles) / sizeof(*tree_styles));
+	bool tree_count_changed = ImGui::InputInt("Trees", &treeCount);
+	bool tree_depth_changed = ImGui::InputInt("Recursion Depth", &recursion_depth);
+	if (tree_style_changed || tree_count_changed || tree_depth_changed) {
+		string style = std::string(tree_styles[selected_tree_style]);
+		trees.reload(treeCount, recursion_depth, std::string(style));
+	}
+
+	ImGui::End();
+}
+
+void Application::renderWaterGUI(int height, int pos) {
+	ImGui::SetNextWindowPos(ImVec2(5, pos), ImGuiSetCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(300, height), ImGuiSetCond_Once);
+	ImGui::Begin("Water", 0);
+
+	ImGui::Text("Water");
+	ImGui::Checkbox("Water Sim Enabled", &water_sim_enabled);
+	
+	ImGui::InputFloat("Bound Damping", &boundDamping, 0.0f, 0.0f, 2); //boundDamping (-0.3)
+	ImGui::InputFloat("Rest Density", &restDensity, 0.0f, 0.0f, 1); //restDensity (1.0)
+	ImGui::InputFloat("Gas", &gasConstant, 0.0f, 0.0f, 1);  //gasConstant (2.0)
+	ImGui::InputFloat("Viscosity", &viscosity, 0.0f, 0.0f, 4); //viscosity (-0.003)
+	ImGui::InputFloat("Particle Mass", &particleMass, 0.0f, 0.0f, 1); //particleMass (1.0)
+	ImGui::InputFloat("Smoothing Radius", &smoothingRadius, 0.0f, 0.0f, 1); //smoothingRadius (1.0)
+	ImGui::InputFloat("Time Step", &timeStep, 0.0f, 0.0f, 4); //timeStep (0.001)
+
 	ImGui::End();
 }
 
@@ -230,15 +274,15 @@ void Application::cursorPosCallback(double xpos, double ypos) {
 		vec2 whsize = m_windowsize / 2.0f;
 
 		// clamp the pitch to [-pi/2, pi/2]
-		m_pitch += float(acos(glm::clamp((m_mousePosition.y - whsize.y) / whsize.y, -1.0f, 1.0f))
+		m_camera.m_pitch += float(acos(glm::clamp((m_mousePosition.y - whsize.y) / whsize.y, -1.0f, 1.0f))
 			- acos(glm::clamp((float(ypos) - whsize.y) / whsize.y, -1.0f, 1.0f)));
-		m_pitch = float(glm::clamp(m_pitch, -pi<float>() / 2, pi<float>() / 2));
+		m_camera.m_pitch = float(glm::clamp(m_camera.m_pitch, -pi<float>() / 2, pi<float>() / 2));
 
 		// wrap the yaw to [-pi, pi]
-		m_yaw += float(acos(glm::clamp((m_mousePosition.x - whsize.x) / whsize.x, -1.0f, 1.0f))
+		m_camera.m_yaw += float(acos(glm::clamp((m_mousePosition.x - whsize.x) / whsize.x, -1.0f, 1.0f))
 			- acos(glm::clamp((float(xpos) - whsize.x) / whsize.x, -1.0f, 1.0f)));
-		if (m_yaw > pi<float>()) m_yaw -= float(2 * pi<float>());
-		else if (m_yaw < -pi<float>()) m_yaw += float(2 * pi<float>());
+		if (m_camera.m_yaw > pi<float>()) m_camera.m_yaw -= float(2 * pi<float>());
+		else if (m_camera.m_yaw < -pi<float>()) m_camera.m_yaw += float(2 * pi<float>());
 	}
 
 	// updated mouse position
@@ -257,12 +301,69 @@ void Application::mouseButtonCallback(int button, int action, int mods) {
 
 void Application::scrollCallback(double xoffset, double yoffset) {
 	(void)xoffset; // currently un-used
-	m_distance *= pow(1.1f, -yoffset);
+	m_camera.move(vec3(0,0,2) * (float)(sign(yoffset) * pow(1.1f, -yoffset)));
 }
 
+enum keys{
+	A = 65,
+	D = 68,
+	S = 83,
+	W = 87,
+	UP = 265,
+	DOWN = 264,
+	LEFT = 263,
+	RIGHT = 262
+};
 
 void Application::keyCallback(int key, int scancode, int action, int mods) {
+	std::cout << key << std::endl;
+	float moveSpeed = 1;
+	switch ((keys)key)
+	{
+	case A:
+		std::cout << "A" << std::endl;
+		adjustFocalPoint(vec3(1,0,0), false);
+		break;
+	case D:
+		std::cout << "D" << std::endl;
+		adjustFocalPoint(vec3(-1,0,0), false);
+		break;
+	case S:
+		std::cout << "S" << std::endl;
+		adjustFocalPoint(vec3(0,0,-1), false);
+		break;
+	case W:
+		std::cout << "W" << std::endl;
+		adjustFocalPoint(vec3(0,0,1), false);
+		break;
+	case UP:
+		std::cout << "UP" << std::endl;
+		adjustFocalPoint(vec3(0,0,1), false);
+		break;
+	case DOWN:
+		std::cout << "DOWN" << std::endl;
+		adjustFocalPoint(vec3(0,0,-1), false);
+		break;
+	case LEFT:
+		std::cout << "LEFT" << std::endl;
+		adjustFocalPoint(vec3(1,0,0), false);
+		break;
+	case RIGHT:
+		std::cout << "RIGHT" << std::endl;
+		adjustFocalPoint(vec3(-1,0,0), false);
+		break;
+	default:
+		break;
+	}
 	(void)key, (void)scancode, (void)action, (void)mods; // currently un-used
+}
+
+void Application::adjustFocalPoint(vec3 amount, bool setAbsolute){
+	if(setAbsolute){
+		m_camera.move(amount);
+	}else{
+		m_camera.move(amount);
+	}
 }
 
 
