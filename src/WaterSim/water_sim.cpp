@@ -9,9 +9,9 @@ using namespace glm;
 using namespace cgra;
 
 water_sim::water_sim(){
-	for (int x = 0; x < 30; x++){
-		for (int y = 0; y < 10; y++){
-			for (int z = 0; z < 30; z++){
+	for (int x = 0; x < 10; x++){
+		for (int y = 0; y < 5; y++){
+			for (int z = 0; z < 10; z++){
 				vec3 random = vec3((float) rand()/RAND_MAX, (float) rand()/RAND_MAX, (float) rand()/RAND_MAX);
 				create_particle(vec3(-10 + x * 2, 40 + y * 2, -10 + z * 2) + random);
 			}
@@ -60,7 +60,7 @@ void water_sim::draw(const mat4 &view, const mat4 &proj, GLuint shader) {
 	}
 
 	// draw bounding box
-	draw_boundary(view, proj, shader);
+	//draw_boundary(view, proj, shader);
 } 
 
 void water_sim::draw_boundary(const mat4 &view, const mat4 &proj, GLuint shader){
