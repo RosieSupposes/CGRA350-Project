@@ -32,12 +32,13 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	loadShaders(styles[0]);
 	
 	fireflies = firefly_cluster(fireflyCount);
-	trees = forest(treeCount, recursion_depth, std::string(tree_styles[0]));
-	basic_water = basic_model(m_basic_water_material, CGRA_SRCDIR + std::string("//res//assets//simple_water.obj"), vec3(0.0,0.9,0.9));
-	terrain = basic_model(m_terrain_material, CGRA_SRCDIR + std::string("//res//assets//land.obj"), scale(mat4(1), vec3(8)));
+	m_terrain = terrain(CGRA_SRCDIR + std::string("//res//assets//land.obj"));
+
+	trees = forest(m_terrain, treeCount, recursion_depth, std::string(tree_styles[0]));
+	basic_water = basic_model(CGRA_SRCDIR + std::string("//res//assets//simple_water.obj"), vec3(0.0,0.9,0.9));
 
 	//TODO uncomment when water_sim constructor matches this:
-	//water = water_sim(water_shader, &boundDamping, &restDensity, &gasConstant, &viscosity, &particleMass, &smoothingRadius, &timeStep); 
+	m_water = water_sim(&boundDamping, &restDensity, &gasConstant, &viscosity, &particleMass, &smoothingRadius, &timeStep); 
 
 	m_camera = camera();
 	m_controller = keyboard_controller();
@@ -59,40 +60,40 @@ void Application::loadShaders(const char * type){
 			//terrain
 			//water
 			//advanced water
-		GLuint firefly_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
-		GLuint trunk_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
-		GLuint leaf_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
-		GLuint terrain_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
-		GLuint basic_water_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
-		GLuint water_sim_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
-		m_firefly_material = material(shader, firefly_texture, vec3(1,1,0.2));
+		GLuint firefly_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//fireflyPBR.png")).uploadTexture();
+		GLuint trunk_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//trunkPBR.png")).uploadTexture();
+		GLuint leaf_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//leafPBR.png")).uploadTexture();
+		GLuint terrain_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//terrainPBR.png")).uploadTexture();
+		GLuint basic_water_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//waterPBR.png")).uploadTexture();
+		GLuint water_sim_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//waterSimPBR.png")).uploadTexture();
+		m_firefly_material = material(shader, firefly_texture, vec3(1,1,0));
 		m_trunk_material = material(shader, trunk_texture, vec3(0.4196, 0.2863, 0.1686));
 		m_leaf_material = material(shader, leaf_texture, vec3(0.2,0.8,0.4));
-		m_terrain_material = material(shader, terrain_texture, vec3(0.8,0.4,0.2));
-		m_basic_water_material = material(shader, basic_water_texture, vec3(0.2,0.4,0.8));
-		m_water_sim_material = material(shader, water_sim_texture, vec3(0,0,1));
+		m_terrain_material = material(shader, terrain_texture, vec3(0.251, 0.161, 0.020));
+		m_basic_water_material = material(shader, basic_water_texture, vec3(0,0.2,0.8));
+		m_water_sim_material = material(shader, water_sim_texture, vec3(0,0.2,0.8));
 	}
 	else if(style == "Sketched")
 	{
 		//Load texture for sketched shader
 		GLuint stroke_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
-		m_firefly_material = material(shader, stroke_texture, vec3(0.4,0.8,0.2));
-		m_trunk_material = material(shader, stroke_texture, vec3(0.8,0.6,0.2));
+		m_firefly_material = material(shader, stroke_texture, vec3(1,1,0));
+		m_trunk_material = material(shader, stroke_texture, vec3(0.4196, 0.2863, 0.1686));
 		m_leaf_material = material(shader, stroke_texture, vec3(0.2,0.8,0.4));
-		m_terrain_material = material(shader, stroke_texture, vec3(0.8,0.4,0.2));
-		m_basic_water_material = material(shader, stroke_texture, vec3(0.2,0.4,0.8));
-		m_water_sim_material = material(shader, stroke_texture, vec3(0.2,0.4,0.8));
+		m_terrain_material = material(shader, stroke_texture, vec3(0.251, 0.161, 0.020));
+		m_basic_water_material = material(shader, stroke_texture, vec3(0,0.2,0.8));
+		m_water_sim_material = material(shader, stroke_texture, vec3(0,0.2,0.8));
 	}
 	else if(style == "Pixel")
 	{
 		//Load texture for pixel shader
 		GLuint pixel_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
-		m_firefly_material = material(shader, pixel_texture, vec3(0.4,0.8,0.2));
-		m_trunk_material = material(shader, pixel_texture, vec3(0.8,0.6,0.2));
+		m_firefly_material = material(shader, pixel_texture, vec3(1,1,0));
+		m_trunk_material = material(shader, pixel_texture, vec3(0.4196, 0.2863, 0.1686));
 		m_leaf_material = material(shader, pixel_texture, vec3(0.2,0.8,0.4));
-		m_terrain_material = material(shader, pixel_texture, vec3(0.8,0.4,0.2));
-		m_basic_water_material = material(shader, pixel_texture, vec3(0.2,0.4,0.8));
-		m_water_sim_material = material(shader, pixel_texture, vec3(0.2,0.4,0.8));
+		m_terrain_material = material(shader, pixel_texture, vec3(0.251, 0.161, 0.020));
+		m_basic_water_material = material(shader, pixel_texture, vec3(0,0.2,0.8));
+		m_water_sim_material = material(shader, pixel_texture, vec3(0,0.2,0.8));
 	}
 	else
 	{
@@ -188,16 +189,16 @@ void Application::renderTrees(const mat4 &view, const mat4 proj){
 void Application::renderWater(const mat4 &view, const mat4 proj){
 	if(water_sim_enabled)
 	{
-		water.draw(view, proj, m_water_sim_material);
+		m_water.draw(view, proj, m_water_sim_material);
 	}
 	else
 	{
-		basic_water.draw(view, proj);
+		basic_water.draw(view, proj, m_basic_water_material);
 	}
 }
 
 void Application::renderTerrain(const mat4 &view, const mat4 proj){
-	terrain.draw(view, proj);
+	m_terrain.draw(view, proj, m_terrain_material);
 }
 
 void Application::simulate(){
@@ -217,7 +218,7 @@ void Application::simulateTrees(){
 void Application::simulateWater(){
 	if(water_sim_enabled)
 	{
-		water.simulate();
+		m_water.simulate();
 	}
 }
 
@@ -270,7 +271,7 @@ void Application::renderGUI() {
 	int waterWindowPos = treesWindowPos + treesWindowHeight + gap;
 	renderWaterGUI(waterWindowHeight, waterWindowPos);
 	//TODO steal the renderWaterGUI function from down below and move it into the forest class, 
-	//water.renderGUI(treesWindowHeight, treesWindowPos);
+	//m_water.renderGUI(treesWindowHeight, treesWindowPos);
 }
 
 void Application::renderShaderGUI(int height, int pos) {
@@ -299,7 +300,7 @@ void Application::renderTreesGUI(int height, int pos) {
 	bool tree_depth_changed = ImGui::InputInt("Recursion Depth", &recursion_depth);
 	if (tree_style_changed || tree_count_changed || tree_depth_changed) {
 		string style = std::string(tree_styles[selected_tree_style]);
-		trees.reload(treeCount, recursion_depth, std::string(style));
+		trees.reload(m_terrain, treeCount, recursion_depth, std::string(style));
 	}
 
 	ImGui::End();

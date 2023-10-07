@@ -14,6 +14,7 @@
 #include "Other/camera.hpp"
 #include "Other/keyboard_controller.hpp"
 #include "Other/material.hpp"
+#include "Other/terrain.hpp"
 #include "WaterSim/water_sim.hpp"
 #include "Trees/forest.hpp"
 
@@ -55,24 +56,21 @@ private:
 	int recursion_depth = 2;
 	material m_trunk_material;
 	material m_leaf_material;
-	GLuint tree_shader = 0;
-	forest trees{0, 0, ""};
+	forest trees;
 	const char* tree_styles[2] = { "Basic", "Complex"};
 	
 		//fireflies
 	int fireflyCount = 100;
 	material m_firefly_material;
-	GLuint firefly_shader = 0;
 	firefly_cluster fireflies{0};
 	
 		//terrain
 	material m_terrain_material;
-	basic_model terrain;
+	terrain m_terrain;
 	
 		//water - basic
 	bool water_sim_enabled = false;
 	material m_basic_water_material;
-	GLuint basic_water_shader = 0;
 	basic_model basic_water;
 		//water - simulation
 	float boundDamping = -0.3f;
@@ -83,8 +81,7 @@ private:
 	float smoothingRadius = 1.0f; //smoothingRadius (1.0)
 	float timeStep = 0.001f; //timeStep (0.001)
 	material m_water_sim_material;
-	GLuint water_shader = 0;
-	water_sim water;
+	water_sim m_water;
 
 	GLuint buildVertAndFragShader(string file_head);
 	

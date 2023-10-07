@@ -20,6 +20,8 @@ private:
 
 public:
     water_sim();
+    water_sim(float *boundDamping, float *restDensity, float *gasConstant, float *viscosity, float *particleMass, float *smoothingRadius, float *timeStep); 
+
     void reload();
     void simulate();
     void manage_boundry(glm::vec3 &vel, glm::vec3 &position);

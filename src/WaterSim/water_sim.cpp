@@ -27,6 +27,11 @@ water_sim::water_sim(){
 	}
 }
 
+water_sim::water_sim(float *boundDamping, float *restDensity, float *gasConstant, float *viscosity, float *particleMass, float *smoothingRadius, float *timeStep)
+{
+
+}
+
 void water_sim::simulate(){
 	if (count >= 5){
 		count = 0;
