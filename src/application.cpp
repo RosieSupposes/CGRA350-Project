@@ -32,25 +32,79 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	loadShaders(styles[0]);
 	
 	fireflies = firefly_cluster(fireflyCount);
-	trees = forest(treeCount, recursion_depth, std::string(tree_styles[0]));
-	basic_water = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//simple_water.obj"), vec3(0.0,0.9,0.9));
-	terrain = basic_model(basic_water_shader, CGRA_SRCDIR + std::string("//res//assets//land.obj"), scale(mat4(1), vec3(8)));
+	m_terrain = terrain(CGRA_SRCDIR + std::string("//res//assets//land.obj"));
+
+	trees = forest(m_terrain, treeCount, recursion_depth, std::string(tree_styles[0]));
+	basic_water = basic_model(CGRA_SRCDIR + std::string("//res//assets//simple_water.obj"), vec3(0.0,0.9,0.9));
 
 	//TODO uncomment when water_sim constructor matches this:
-	//water = water_sim(water_shader, &boundDamping, &restDensity, &gasConstant, &viscosity, &particleMass, &smoothingRadius, &timeStep); 
+	m_water = water_sim(&boundDamping, &restDensity, &gasConstant, &viscosity, &particleMass, &smoothingRadius, &timeStep); 
+
+	m_camera = camera();
+	m_controller = keyboard_controller();
+	m_controller.m_camera = &m_camera;
 }
 
 void Application::loadShaders(const char * type){
 	string style = std::string(type);
 
-	shader_builder water_sb, tree_sb, firefly_sb, simple_water_sb;
 	string file_head = CGRA_SRCDIR + std::string("//res//shaders//") + style;
 	
-	water_shader = buildVertAndFragShader(file_head);
-	tree_shader = buildVertAndFragShader(file_head);
-	firefly_shader = buildVertAndFragShader(file_head);
-	basic_water_shader = buildVertAndFragShader(file_head);
-	std::cout << "Changed shader type to: " << style << std::endl;
+	GLuint shader = buildVertAndFragShader(file_head);
+	if(style == "PBR")
+	{
+		//Load textures for each material
+			//fireflies(???)
+			//treetrunk
+			//leaves
+			//terrain
+			//water
+			//advanced water
+		GLuint firefly_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//fireflyPBR.png")).uploadTexture();
+		GLuint trunk_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//trunkPBR.png")).uploadTexture();
+		GLuint leaf_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//leafPBR.png")).uploadTexture();
+		GLuint terrain_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//terrainPBR.png")).uploadTexture();
+		GLuint basic_water_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//waterPBR.png")).uploadTexture();
+		GLuint water_sim_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//waterSimPBR.png")).uploadTexture();
+		m_firefly_material = material(shader, firefly_texture, vec3(1,1,0));
+		m_trunk_material = material(shader, trunk_texture, vec3(0.4196, 0.2863, 0.1686));
+		m_leaf_material = material(shader, leaf_texture, vec3(0.2,0.8,0.4));
+		m_terrain_material = material(shader, terrain_texture, vec3(0.251, 0.161, 0.020));
+		m_basic_water_material = material(shader, basic_water_texture, vec3(0,0.2,0.8));
+		m_water_sim_material = material(shader, water_sim_texture, vec3(0,0.2,0.8));
+	}
+	else if(style == "Sketched")
+	{
+		//Load texture for sketched shader
+		GLuint stroke_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
+		m_firefly_material = material(shader, stroke_texture, vec3(1,1,0));
+		m_trunk_material = material(shader, stroke_texture, vec3(0.4196, 0.2863, 0.1686));
+		m_leaf_material = material(shader, stroke_texture, vec3(0.2,0.8,0.4));
+		m_terrain_material = material(shader, stroke_texture, vec3(0.251, 0.161, 0.020));
+		m_basic_water_material = material(shader, stroke_texture, vec3(0,0.2,0.8));
+		m_water_sim_material = material(shader, stroke_texture, vec3(0,0.2,0.8));
+	}
+	else if(style == "Pixel")
+	{
+		//Load texture for pixel shader
+		GLuint pixel_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
+		m_firefly_material = material(shader, pixel_texture, vec3(1,1,0));
+		m_trunk_material = material(shader, pixel_texture, vec3(0.4196, 0.2863, 0.1686));
+		m_leaf_material = material(shader, pixel_texture, vec3(0.2,0.8,0.4));
+		m_terrain_material = material(shader, pixel_texture, vec3(0.251, 0.161, 0.020));
+		m_basic_water_material = material(shader, pixel_texture, vec3(0,0.2,0.8));
+		m_water_sim_material = material(shader, pixel_texture, vec3(0,0.2,0.8));
+	}
+	else
+	{
+		shader = buildVertAndFragShader(CGRA_SRCDIR + std::string("//res//shaders//color"));
+		m_firefly_material = material(shader);
+		m_trunk_material = material(shader);
+		m_leaf_material = material(shader);
+		m_terrain_material = material(shader);
+		m_basic_water_material = material(shader);
+		m_water_sim_material = material(shader);
+	}
 }
 
 GLuint Application::buildVertAndFragShader(string file_head){
@@ -69,6 +123,9 @@ void Application::render() {
 
 	m_windowsize = vec2(width, height); // update window size
 	glViewport(0, 0, width, height); // set the viewport to draw to the entire window
+
+	//Check for inputs
+	m_controller.checkedPressed();
 
 	//Update camera
 	m_camera.updateProjection(width, height);
@@ -121,27 +178,27 @@ void Application::WrapUpFrame(double start_time){
 }
 
 void Application::renderFireflies(const mat4 &view, const mat4 proj){
-	fireflies.draw(view, proj, firefly_shader);
+	fireflies.draw(view, proj, m_firefly_material);
 }
 
 
 void Application::renderTrees(const mat4 &view, const mat4 proj){
-	trees.draw(view, proj, tree_shader);
+	trees.draw(view, proj, m_trunk_material, m_leaf_material);
 }
 
 void Application::renderWater(const mat4 &view, const mat4 proj){
 	if(water_sim_enabled)
 	{
-		water.draw(view, proj, water_shader);
+		m_water.draw(view, proj, m_water_sim_material);
 	}
 	else
 	{
-		basic_water.draw(view, proj);
+		basic_water.draw(view, proj, m_basic_water_material);
 	}
 }
 
 void Application::renderTerrain(const mat4 &view, const mat4 proj){
-	terrain.draw(view, proj);
+	m_terrain.draw(view, proj, m_terrain_material);
 }
 
 void Application::simulate(){
@@ -161,7 +218,7 @@ void Application::simulateTrees(){
 void Application::simulateWater(){
 	if(water_sim_enabled)
 	{
-		water.simulate();
+		m_water.simulate();
 	}
 }
 
@@ -214,7 +271,7 @@ void Application::renderGUI() {
 	int waterWindowPos = treesWindowPos + treesWindowHeight + gap;
 	renderWaterGUI(waterWindowHeight, waterWindowPos);
 	//TODO steal the renderWaterGUI function from down below and move it into the forest class, 
-	//water.renderGUI(treesWindowHeight, treesWindowPos);
+	//m_water.renderGUI(treesWindowHeight, treesWindowPos);
 }
 
 void Application::renderShaderGUI(int height, int pos) {
@@ -243,7 +300,7 @@ void Application::renderTreesGUI(int height, int pos) {
 	bool tree_depth_changed = ImGui::InputInt("Recursion Depth", &recursion_depth);
 	if (tree_style_changed || tree_count_changed || tree_depth_changed) {
 		string style = std::string(tree_styles[selected_tree_style]);
-		trees.reload(treeCount, recursion_depth, std::string(style));
+		trees.reload(m_terrain, treeCount, recursion_depth, std::string(style));
 	}
 
 	ImGui::End();
@@ -301,71 +358,16 @@ void Application::mouseButtonCallback(int button, int action, int mods) {
 
 void Application::scrollCallback(double xoffset, double yoffset) {
 	(void)xoffset; // currently un-used
-	m_camera.move(vec3(0,0,2) * (float)(sign(yoffset) * pow(1.1f, -yoffset)));
+	float moveDirection = sign(yoffset) * pow(1.1f, -yoffset);
+	m_camera.move(vec3(0,0,2) * moveDirection);
 }
 
-enum keys{
-	A = 65,
-	D = 68,
-	S = 83,
-	W = 87,
-	UP = 265,
-	DOWN = 264,
-	LEFT = 263,
-	RIGHT = 262
-};
+
 
 void Application::keyCallback(int key, int scancode, int action, int mods) {
-	std::cout << key << std::endl;
-	float moveSpeed = 1;
-	switch ((keys)key)
-	{
-	case A:
-		std::cout << "A" << std::endl;
-		adjustFocalPoint(vec3(1,0,0), false);
-		break;
-	case D:
-		std::cout << "D" << std::endl;
-		adjustFocalPoint(vec3(-1,0,0), false);
-		break;
-	case S:
-		std::cout << "S" << std::endl;
-		adjustFocalPoint(vec3(0,0,-1), false);
-		break;
-	case W:
-		std::cout << "W" << std::endl;
-		adjustFocalPoint(vec3(0,0,1), false);
-		break;
-	case UP:
-		std::cout << "UP" << std::endl;
-		adjustFocalPoint(vec3(0,0,1), false);
-		break;
-	case DOWN:
-		std::cout << "DOWN" << std::endl;
-		adjustFocalPoint(vec3(0,0,-1), false);
-		break;
-	case LEFT:
-		std::cout << "LEFT" << std::endl;
-		adjustFocalPoint(vec3(1,0,0), false);
-		break;
-	case RIGHT:
-		std::cout << "RIGHT" << std::endl;
-		adjustFocalPoint(vec3(-1,0,0), false);
-		break;
-	default:
-		break;
-	}
+	m_controller.keyCallback(key, scancode, action, mods);
 	(void)key, (void)scancode, (void)action, (void)mods; // currently un-used
 }
-
-void Application::adjustFocalPoint(vec3 amount, bool setAbsolute){
-	if(setAbsolute){
-		m_camera.move(amount);
-	}else{
-		m_camera.move(amount);
-	}
-}
-
 
 void Application::charCallback(unsigned int c) {
 	(void)c; // currently un-used
@@ -394,10 +396,9 @@ void Application::readSettings(){
 		// Reading like this means whitespace at the start of the line is fine
 		// attempting to read from an empty string/line will set the failbit
 		if (settingsLine.good()) {
-			std::string outHolder;
 			if (mode == "water_sim_enabled=") {
 				settingsLine >> water_sim_enabled;
-				std::cout << "Set water simulation default to " << (max_frames ? "On" : "Off") << std::endl;
+				std::cout << "Set water simulation default to " << (water_sim_enabled ? "On" : "Off") << std::endl;
 			}
 			else if (mode == "framerate_limit=") {
 				settingsLine >> max_frames;

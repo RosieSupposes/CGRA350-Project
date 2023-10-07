@@ -7,6 +7,7 @@
 // project
 #include "opengl.hpp"
 #include "cgra/cgra_mesh.hpp"
+#include "Other/material.hpp"
 
 class firefly {
 private:
@@ -31,6 +32,6 @@ public:
 
 	firefly(glm::vec3 pos, float brightness, glm::vec3 sp);
 
-	void draw(const glm::mat4& view, const glm::mat4& proj, GLuint shader);
+	void draw(const glm::mat4& view, const glm::mat4& proj, material &material);
 	void setPos(glm::vec3 p);
 };

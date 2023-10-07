@@ -18,17 +18,12 @@ firefly::firefly(glm::vec3 p, float b, glm::vec3 sp){
 	//m_texture;
 }
 
-void firefly::draw(const mat4 &view, const mat4 &proj, GLuint shader) {
-	// set up the shader for every draw call
-	glUseProgram(shader); // load shader and variables
-	glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(proj));
-
+void firefly::draw(const mat4 &view, const mat4 &proj, material &material) {
 	
 	mat4 modelview = translate(view, pos);
 	modelview = scale(modelview, vec3(0.3));
-	m_color = vec3(brightness);
-	glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(modelview));
-	glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, value_ptr(m_color));
+	material.load(modelview, proj);
+	glUniform1f(glGetUniformLocation(material.m_shader, "uBrightness"), brightness);
 	m_mesh.draw();
 }
 

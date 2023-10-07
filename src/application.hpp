@@ -12,6 +12,9 @@
 #include "Fireflies/firefly_cluster.hpp"
 #include "Other/basic_model.hpp"
 #include "Other/camera.hpp"
+#include "Other/keyboard_controller.hpp"
+#include "Other/material.hpp"
+#include "Other/terrain.hpp"
 #include "WaterSim/water_sim.hpp"
 #include "Trees/forest.hpp"
 
@@ -41,30 +44,35 @@ private:
 	//Camera
 	camera m_camera;
 
+	//controller
+	keyboard_controller m_controller;
+
 	//Style
 	const char* styles[3] = { "PBR", "Sketched", "Pixel"};
-
 
 	// geometry
 		//trees
 	int treeCount = 20;
 	int recursion_depth = 2;
-	GLuint tree_shader = 0;
-	forest trees{0, 0, ""};
+	material m_trunk_material;
+	material m_leaf_material;
+	forest trees;
 	const char* tree_styles[2] = { "Basic", "Complex"};
 	
 		//fireflies
 	int fireflyCount = 100;
-	GLuint firefly_shader = 0;
+	material m_firefly_material;
 	firefly_cluster fireflies{0};
 	
-	//terrain
-	basic_model terrain;
+		//terrain
+	material m_terrain_material;
+	terrain m_terrain;
 	
-		//water
+		//water - basic
 	bool water_sim_enabled = false;
-	GLuint basic_water_shader = 0;
+	material m_basic_water_material;
 	basic_model basic_water;
+		//water - simulation
 	float boundDamping = -0.3f;
 	float restDensity = 1.0f; //restDensity (1.0)
 	float gasConstant = 2.0f; //gasConstant (2.0)
@@ -72,10 +80,8 @@ private:
 	float particleMass = 1.0f; //particleMass (1.0)
 	float smoothingRadius = 1.0f; //smoothingRadius (1.0)
 	float timeStep = 0.001f; //timeStep (0.001)
-	
-		//watersim
-	GLuint water_shader = 0;
-	water_sim water;
+	material m_water_sim_material;
+	water_sim m_water;
 
 	GLuint buildVertAndFragShader(string file_head);
 	

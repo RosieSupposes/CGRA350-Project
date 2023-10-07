@@ -8,13 +8,10 @@ using namespace std;
 using namespace glm;
 using namespace cgra;
 
-void Particle::draw(const mat4 &view, const mat4 &proj, GLuint shader){
+void Particle::draw(const mat4 &view, const mat4 &proj, material &material){
     mat4 modelview = view;
     modelview = translate(modelview, position);
-	glUseProgram(shader); // load shader and variables
-	glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(proj));
-	glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(modelview));
-	glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, value_ptr(color));
+    material.load(modelview, proj);
 	drawSphere();
 }
 

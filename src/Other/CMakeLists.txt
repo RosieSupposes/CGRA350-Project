@@ -8,6 +8,18 @@ set(sources
 	"camera.hpp"
 	"camera.cpp"
 
+	"collider.hpp"
+	"collider.cpp"
+
+	"keyboard_controller.hpp"
+	"keyboard_controller.cpp"
+
+	"material.hpp"
+	"material.cpp"
+
+	"terrain.hpp"
+	"terrain.cpp"
+	
 	"CMakeLists.txt"
 )
 

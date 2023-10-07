@@ -8,6 +8,7 @@
 #include "opengl.hpp"
 #include "cgra/cgra_mesh.hpp"
 #include "Turtle.hpp"
+#include "Other/material.hpp"
 
 using namespace std;
 using namespace glm;
@@ -19,13 +20,9 @@ struct cylinder_model {
     mat4 modelTransform{1.0};
     GLuint texture;
     
-    void draw(const mat4 &view, const mat4 proj, GLuint shader){
+    void draw(const mat4 &view, const mat4 &proj, material &material){
         mat4 modelview = view * modelTransform;
-        
-        glUseProgram(shader); // load shader and variables
-        glUniformMatrix4fv(glGetUniformLocation(shader, "uProjectionMatrix"), 1, false, value_ptr(proj));
-        glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(modelview));
-        glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, value_ptr(color));
+        material.load(modelview, proj);
         mesh.draw(); // draw
     }
 };
@@ -44,6 +41,6 @@ private:
 
 public:
     tree(glm::mat4 transform, int recursion_depth, string style);
-	void draw(const glm::mat4 &view, const glm::mat4 &proj, GLuint shader);
+	void draw(const glm::mat4 &view, const glm::mat4 &proj, material &trunk_material, material &leaf_material);
 };  
  

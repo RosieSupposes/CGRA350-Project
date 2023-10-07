@@ -4,6 +4,10 @@
 uniform mat4 uProjectionMatrix;
 uniform mat4 uModelViewMatrix;
 uniform vec3 uColor;
+uniform float uBrightness;
+uniform sampler2D texture;
+uniform float uMetallic;
+uniform float uRoughness;
 
 // mesh data
 layout(location = 0) in vec3 aPosition;
