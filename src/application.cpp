@@ -37,8 +37,7 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	trees = forest(m_terrain);
 	basic_water = basic_model(CGRA_SRCDIR + std::string("//res//assets//simple_water.obj"), vec3(0.0,0.9,0.9));
 
-	//TODO uncomment when water_sim constructor matches this:
-	m_water = water_sim(&boundDamping, &restDensity, &gasConstant, &viscosity, &particleMass, &smoothingRadius, &timeStep); 
+	m_water = water_sim(&water_sim_enabled); 
 
 	m_camera = camera();
 	m_controller = keyboard_controller();
@@ -267,7 +266,7 @@ void Application::renderGUI() {
 
 	int waterWindowHeight = 230; //can change height here if you add more controls
 	int waterWindowPos = treesWindowPos + treesWindowHeight + gap;
-	renderWaterGUI(waterWindowHeight, waterWindowPos);
+	m_water.renderGUI(waterWindowHeight, waterWindowPos);
 	//TODO steal the renderWaterGUI function from down below and move it into the forest class, 
 	//m_water.renderGUI(treesWindowHeight, treesWindowPos);
 }
@@ -282,25 +281,6 @@ void Application::renderShaderGUI(int height, int pos) {
 	if (ImGui::Combo("Style", &selected_style, styles, sizeof(styles) / sizeof(*styles))) {
 		loadShaders(styles[selected_style]);
 	}
-
-	ImGui::End();
-}
-
-void Application::renderWaterGUI(int height, int pos) {
-	ImGui::SetNextWindowPos(ImVec2(5, pos), ImGuiSetCond_Once);
-	ImGui::SetNextWindowSize(ImVec2(300, height), ImGuiSetCond_Once);
-	ImGui::Begin("Water", 0);
-
-	ImGui::Text("Water");
-	ImGui::Checkbox("Water Sim Enabled", &water_sim_enabled);
-	
-	ImGui::InputFloat("Bound Damping", &boundDamping, 0.0f, 0.0f, 2); //boundDamping (-0.3)
-	ImGui::InputFloat("Rest Density", &restDensity, 0.0f, 0.0f, 1); //restDensity (1.0)
-	ImGui::InputFloat("Gas", &gasConstant, 0.0f, 0.0f, 1);  //gasConstant (2.0)
-	ImGui::InputFloat("Viscosity", &viscosity, 0.0f, 0.0f, 4); //viscosity (-0.003)
-	ImGui::InputFloat("Particle Mass", &particleMass, 0.0f, 0.0f, 1); //particleMass (1.0)
-	ImGui::InputFloat("Smoothing Radius", &smoothingRadius, 0.0f, 0.0f, 1); //smoothingRadius (1.0)
-	ImGui::InputFloat("Time Step", &timeStep, 0.0f, 0.0f, 4); //timeStep (0.001)
 
 	ImGui::End();
 }

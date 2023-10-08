@@ -2,6 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "cgra/cgra_wavefront.hpp"
 #include "cgra/cgra_geometry.hpp"
+#include "cgra/cgra_gui.hpp"
 #include <cstdlib> 
 
 using namespace std;
@@ -27,9 +28,24 @@ water_sim::water_sim(){
 	}
 }
 
-water_sim::water_sim(float *boundDamping, float *restDensity, float *gasConstant, float *viscosity, float *particleMass, float *smoothingRadius, float *timeStep)
-{
+water_sim::water_sim(bool* enabled) {
+	water_sim::enabled = enabled;
+	for (int x = 0; x < 10; x++){
+		for (int y = 0; y < 5; y++){
+			for (int z = 0; z < 10; z++){
+				vec3 random = vec3((float) rand()/RAND_MAX, (float) rand()/RAND_MAX, (float) rand()/RAND_MAX);
+				create_particle(vec3(-10 + x * 2, 40 + y * 2, -10 + z * 2) + random);
+			}
+		}
+	}
+	for (int i = 0; i < (int)particles.size(); i++){
+		Particle &p = particles[i];
+		// Calculate Density
+		calculate_density(p);
 
+		// Calculate Pressure
+		calculate_pressure(p);
+	}
 }
 
 void water_sim::simulate(){
@@ -66,7 +82,26 @@ void water_sim::draw(const mat4 &view, const mat4 &proj, material &material) {
 
 	// draw bounding box
 	//draw_boundary(view, proj, shader);
-} 
+}
+
+void water_sim::renderGUI(int height, int pos){
+	ImGui::SetNextWindowPos(ImVec2(5, pos), ImGuiSetCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(300, height), ImGuiSetCond_Once);
+	ImGui::Begin("Water", 0);
+
+	ImGui::Text("Water");
+	ImGui::Checkbox("Water Sim Enabled", enabled);
+	
+	ImGui::InputFloat("Bound Damping", &boundDamping, 0.0f, 0.0f, 2); //boundDamping (-0.3)
+	ImGui::InputFloat("Rest Density", &restDensity, 0.0f, 0.0f, 1); //restDensity (1.0)
+	ImGui::InputFloat("Gas", &gasConstant, 0.0f, 0.0f, 1);  //gasConstant (2.0)
+	ImGui::InputFloat("Viscosity", &viscosity, 0.0f, 0.0f, 4); //viscosity (-0.003)
+	ImGui::InputFloat("Particle Mass", &particleMass, 0.0f, 0.0f, 1); //particleMass (1.0)
+	ImGui::InputFloat("Smoothing Radius", &smoothingRadius, 0.0f, 0.0f, 1); //smoothingRadius (1.0)
+	ImGui::InputFloat("Time Step", &timestep, 0.0f, 0.0f, 4); //timeStep (0.001)
+
+	ImGui::End();
+}
 
 void water_sim::draw_boundary(const mat4 &view, const mat4 &proj, material &material){
 	// draw bounding box

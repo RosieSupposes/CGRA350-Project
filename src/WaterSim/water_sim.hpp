@@ -20,10 +20,11 @@ private:
 
 public:
     water_sim();
-    water_sim(float *boundDamping, float *restDensity, float *gasConstant, float *viscosity, float *particleMass, float *smoothingRadius, float *timeStep); 
+    water_sim(bool* enabled); 
 
     void reload();
     void simulate();
+    void renderGUI(int height, int pos);
     void manage_boundry(glm::vec3 &vel, glm::vec3 &position);
     Particle* create_particle(glm::vec3 position = glm::vec3(0,0,0));
 
@@ -55,6 +56,8 @@ public:
     float smoothingRadius = 1.17f;
     float timestep = 0.02f;
     float boundDamping = -0.3f;
+
+    bool* enabled;
 
     int count = 0;
 };  
