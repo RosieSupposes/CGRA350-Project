@@ -2,6 +2,7 @@
 
 
 #include <glm/gtc/matrix_transform.hpp>
+#include "opengl.hpp"
 
 using namespace glm;
 
@@ -9,8 +10,26 @@ forest::forest(){
 	
 }
 
-forest::forest(terrain terrain, int count, int recursion_depth, string style){
-	reload(terrain, count, recursion_depth, style);
+void forest::renderGUI(terrain terrain, int height, int pos) {
+    ImGui::SetNextWindowPos(ImVec2(5, pos), ImGuiSetCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(300, height), ImGuiSetCond_Once);
+    ImGui::Begin("Trees", 0);
+
+    ImGui::Text("Trees");
+    static int selected_tree_style = 0;
+    bool tree_style_changed = ImGui::Combo("Tree style", &selected_tree_style, tree_styles, sizeof(tree_styles) / sizeof(*tree_styles));
+    bool tree_count_changed = ImGui::InputInt("Trees", &treeCount);
+    bool tree_depth_changed = ImGui::InputInt("Recursion Depth", &recursion_depth);
+    if (tree_style_changed || tree_count_changed || tree_depth_changed) {
+        string style = std::string(tree_styles[selected_tree_style]);
+        reload(terrain, treeCount, recursion_depth, std::string(style));
+    }
+
+    ImGui::End();
+}
+
+forest::forest(terrain terrain){
+	reload(terrain, treeCount, recursion_depth, std::string(tree_styles[0]));
 }
 
 void forest::reload(terrain terrain, int count, int recurison_depth, string style){
