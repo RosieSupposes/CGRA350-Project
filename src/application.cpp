@@ -34,7 +34,7 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	fireflies = firefly_cluster(fireflyCount);
 	m_terrain = terrain(CGRA_SRCDIR + std::string("//res//assets//land.obj"));
 
-	trees = forest(m_terrain, treeCount, recursion_depth, std::string(tree_styles[0]));
+	trees = forest(m_terrain);
 	basic_water = basic_model(CGRA_SRCDIR + std::string("//res//assets//simple_water.obj"), vec3(0.0,0.9,0.9));
 
 	//TODO uncomment when water_sim constructor matches this:
@@ -263,9 +263,7 @@ void Application::renderGUI() {
 
 	int treesWindowHeight = 125; //can change height here if you add more controls
 	int treesWindowPos = shaderWindowPos + shaderWindowHeight + gap;
-	renderTreesGUI(treesWindowHeight, treesWindowPos);
-	//TODO steal the renderTreesGUI function from down below and move it into the forest class, 
-	//trees.renderGUI(treesWindowHeight, treesWindowPos);
+	trees.renderGUI(m_terrain, treesWindowHeight, treesWindowPos);
 
 	int waterWindowHeight = 230; //can change height here if you add more controls
 	int waterWindowPos = treesWindowPos + treesWindowHeight + gap;
@@ -283,24 +281,6 @@ void Application::renderShaderGUI(int height, int pos) {
 	static int selected_style = 0; // If the selection isn't within 0..count, Combo won't display a preview
 	if (ImGui::Combo("Style", &selected_style, styles, sizeof(styles) / sizeof(*styles))) {
 		loadShaders(styles[selected_style]);
-	}
-
-	ImGui::End();
-}
-
-void Application::renderTreesGUI(int height, int pos) {
-	ImGui::SetNextWindowPos(ImVec2(5, pos), ImGuiSetCond_Once);
-	ImGui::SetNextWindowSize(ImVec2(300, height), ImGuiSetCond_Once);
-	ImGui::Begin("Trees", 0);
-
-	ImGui::Text("Trees");
-	static int selected_tree_style = 0;
-	bool tree_style_changed = ImGui::Combo("Tree style", &selected_tree_style, tree_styles, sizeof(tree_styles) / sizeof(*tree_styles));
-	bool tree_count_changed = ImGui::InputInt("Trees", &treeCount);
-	bool tree_depth_changed = ImGui::InputInt("Recursion Depth", &recursion_depth);
-	if (tree_style_changed || tree_count_changed || tree_depth_changed) {
-		string style = std::string(tree_styles[selected_tree_style]);
-		trees.reload(m_terrain, treeCount, recursion_depth, std::string(style));
 	}
 
 	ImGui::End();
@@ -405,8 +385,8 @@ void Application::readSettings(){
 				std::cout << "Set frame rate limit to " << max_frames << std::endl;
 			}
 			else if (mode == "tree_recursion_depth=") {
-				settingsLine >> recursion_depth;
-				std::cout << "Set tree recursion depth to " << recursion_depth << std::endl;
+				settingsLine >> trees.recursion_depth;
+				std::cout << "Set tree recursion depth to " << trees.recursion_depth << std::endl;
 			}
 			else if (mode == "other_things") {
 				std::string placeHolder;

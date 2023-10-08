@@ -52,12 +52,9 @@ private:
 
 	// geometry
 		//trees
-	int treeCount = 20;
-	int recursion_depth = 2;
 	material m_trunk_material;
 	material m_leaf_material;
 	forest trees;
-	const char* tree_styles[2] = { "Basic", "Complex"};
 	
 		//fireflies
 	int fireflyCount = 100;
@@ -115,7 +112,6 @@ public:
 	void renderGUI();
 
 	void renderShaderGUI(int height, int pos);
-	void renderTreesGUI(int height, int pos);
 	void renderWaterGUI(int height, int pos);
 
 	// input callbacks
