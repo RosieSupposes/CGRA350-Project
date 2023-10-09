@@ -8,11 +8,14 @@
 // project
 #include "opengl.hpp"
 #include "basic_model.hpp"
+#include "collider.hpp"
+#include "cgra/cgra_mesh.hpp"
 #include "material.hpp"
 
 class terrain{
 private:
     basic_model m_model;
+    collider m_collider;
     glm::vec3 m_scale{8};
     
     
