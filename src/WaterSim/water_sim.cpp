@@ -16,7 +16,23 @@ water_sim::water_sim(bool* enabled) {
 }
 
 void water_sim::simulate(){
+	float delta_time = glfwGetTime() - prev_time;
+	count++;
+	if (count % 10 == 0 && running){
+		// add randomness
+		float x_rand = rand() / (float)INT_MAX;
+		float y_rand = rand() / (float)INT_MAX;
+		float z_rand = rand() / (float)INT_MAX;
+
+		Particle p;
+		p.position = vec3(x_rand, y_rand, z_rand);
+		p.estimated_position = vec3(x_rand, y_rand, z_rand);
+		particles.push_back(p);
+
+	}
 	concurrency::parallel_for(0, (int)particles.size(), [&](int i){
+		// Update estimated position
+		particles[i].estimated_position = particles[i].position + particles[i].velocity * delta_time * timestep;
 		// Calculate density
 		calculate_pressure_density(i);
 	});
@@ -25,8 +41,8 @@ void water_sim::simulate(){
 	concurrency::parallel_for(0, (int)particles.size(), [&](int i){
 		// Update velocity
 		vec3 total_force = calculate_force(i);
-		particles[i].velocity += (total_force / particles[i].density) * timestep;
-		particles[i].position += particles[i].velocity * timestep;
+		particles[i].velocity += (total_force / particles[i].density) * delta_time * timestep;
+		particles[i].position += particles[i].velocity * delta_time * timestep;
 
 
 		// Check for collisions
@@ -44,11 +60,12 @@ void water_sim::simulate(){
 			particles[i].velocity.z *= -1.0f * bound_dampening;
 		}
 	});
+	prev_time = glfwGetTime();
 }
 
 void water_sim::reload(){
 	particles.clear();
-	generate_particles();
+	//generate_particles();
 }
 
 void water_sim::draw(const mat4 &view, const mat4 &proj, material &material) {
@@ -64,7 +81,8 @@ void water_sim::renderGUI(int height, int pos){
 	ImGui::Text("Water");
 	ImGui::Checkbox("Enabled", enabled);
 	if (ImGui::Button("Reload")) reload();
-	ImGui::SliderFloat("Timestep", &timestep, 0.0f, 1.0f);
+	ImGui::Checkbox("Running", &running);
+	ImGui::SliderFloat("Timestep", &timestep, 0.0f, 100.0f);
 	ImGui::SliderFloat3("Bounds Size", value_ptr(bounds_size), 0.0f, 100.0f);
 	ImGui::SliderFloat("Bounds Dampening", &bound_dampening, 0.0f, 1.0f);
 	ImGui::SliderInt("Particle Count", &particle_count, 0, 100000);
@@ -124,41 +142,49 @@ void water_sim::generate_particles(){
 }
 
 float water_sim::smoothing_kernel(float dist){
-	float x = 1.0f - (dist * dist) / (smoothing_radius * smoothing_radius);
-    return 315.f / ( 64.f * PI * (smoothing_radius * smoothing_radius)) * x * x * x;
+	// poly6
+	const float Poly6_constant = (315.0f / (64.0f * PI * (float)pow(smoothing_radius, 9.0f)));
+	if (dist > smoothing_radius) return  0.0f;
+	return Poly6_constant * pow(smoothing_radius * smoothing_radius - dist * dist, 3);
 }
 
 float water_sim::smoothing_kernel_derivative(float dist){
-	float x = 1.0f - dist / smoothing_radius;
-	return -45 / (PI * pow(smoothing_radius, 4.0f)) * pow(x, 2.0f);
+	// spiky
+	const float Spiky_constant = (-45.0f / (PI * (float)pow(smoothing_radius, 6.0f)));
+	if (dist > smoothing_radius) return 0.0f;
+	return Spiky_constant * pow(smoothing_radius - dist, 2);
 }
 
 void water_sim::calculate_pressure_density(int n){
-	vec3 pos = particles[n].position;
+	vec3 pos = particles[n].estimated_position;
 	float density = 0.0f;
 	concurrency::parallel_for(0, (int)particles.size(), [&](int j){
 		vec3 diff = particles[j].position - pos;
 		float dist = dot(diff, diff);
-
-		if (smoothing_radius * smoothing_radius * 0.004 > dist *0.004){
+		dist = sqrt(dist);
+		if (smoothing_radius * smoothing_radius > dist){
 			density += mass * smoothing_kernel(dist * 0.004);
 		}
 	});
-	particles[n].density = density + 0.000001f;
+	particles[n].density = std::max(density, target_density);
 	particles[n].pressure = pressure_multiplier * (density - target_density);
-
-	if (particles[n].pressure <= 0) particles[n].pressure = 0.000001f;
 }
 
 vec3 water_sim::calculate_force(int n){
 	vec3 pressure = vec3(0.0f, 0.0f, 0.0f);
+	vec3 viscosity_force = vec3(0.0f, 0.0f, 0.0f);
 	for (int j = 0; j < (int)particles.size(); j++){
-		if (j == n) continue;
-		float dist = length(particles[j].position - particles[n].position);
-		if (dist < smoothing_radius * 2){
-			vec3 dir = normalize(particles[n].position - particles[j].position);
-			pressure += (particles[n].pressure / (particles[n].density * particles[n].density) + particles[j].pressure / (particles[j].density * particles[j].density)) * smoothing_kernel_derivative(dist) * dir;
+		if (j != n) {
+			vec3 diff = particles[j].position - particles[n].estimated_position;
+			float dist = dot(diff, diff);
+			dist = sqrt(dist);
+			if (dist > 0 && dist < smoothing_radius){
+				vec3 dir = normalize(particles[n].estimated_position - particles[j].position);
+				pressure += (particles[j].pressure + particles[n].pressure) / (2.0f * particles[j].density * particles[n].density) * smoothing_kernel_derivative(dist) * dir;
+				float w = -(pow(dist, 3.0) / (2 * pow(smoothing_radius, 3.0f))) + (pow(dist, 2.0) / pow(smoothing_radius, 2.0f)) + (smoothing_radius / (2 * dist)) - 1;
+				viscosity_force += viscosity * (1.0f / particles[j].density) * (particles[j].velocity - particles[n].velocity) * dir * w;
+			}
 		}
 	}
-	return -pressure + vec3(0, -gravity, 0);		
+	return -pressure + vec3(0, -gravity, 0) + viscosity_force;		
 }

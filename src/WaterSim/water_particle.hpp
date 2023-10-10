@@ -39,7 +39,7 @@ struct Particle {
     public:
         float pressure = 0.0f;
         float density = 0.0f;
-
+        glm::vec3 estimated_position = glm::vec3(0,0,0);
         glm::vec3 position = glm::vec3(0,0,0);
         glm::vec3 velocity  = glm::vec3(0,0,0);
 

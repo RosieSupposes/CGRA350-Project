@@ -48,12 +48,16 @@ public:
     glm::vec3 bounds_size = glm::vec3(10.0f, 40.0f, 10.0f);
 
     // Water properties
-    float smoothing_radius = 1.7f;
+    float smoothing_radius = 0.365f;
     float mass = 1.0f;
     float target_density = 2.4f;
     float pressure_multiplier = 12.5f;
-    float gravity = 9.8f;
+    float gravity = 3.0f;
     float viscosity = 0.1f;
+
+    int count = 0;
+    bool running = false;
+    float prev_time = 0.0f;
 
 };  
 
