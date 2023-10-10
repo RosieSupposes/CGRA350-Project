@@ -37,14 +37,16 @@ namespace {
 
 struct Particle {
     public:
-        float pressure = 0.00001f;
-        float density = 0.00001f;
-        float mass = 1.0f;
+        float pressure = 0.0f;
+        float density = 0.0f;
 
-        glm::vec3 currentForce = glm::vec3(0,0,0);
+        std::vector<Particle*> neighbours;
+
         glm::vec3 position = glm::vec3(0,0,0);
         glm::vec3 velocity  = glm::vec3(0,0,0);
 
+
+        void simulate(float dt);
         void draw(const glm::mat4 &view, const glm::mat4 &proj, material &material);\
 };
 
