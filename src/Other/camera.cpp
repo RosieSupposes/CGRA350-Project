@@ -46,7 +46,7 @@ void camera::reduceVelocity(){
 }
 
 void camera::updateProjection(int frameWidth, int frameHeight){
-	if(frameHeight == 0){
+	if(frameHeight != 0){
 		m_proj = perspective(1.f, float(frameWidth) / frameHeight, 0.1f, 1000.f);
 	}
 	
