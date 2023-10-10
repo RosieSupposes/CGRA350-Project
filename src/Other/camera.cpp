@@ -46,7 +46,10 @@ void camera::reduceVelocity(){
 }
 
 void camera::updateProjection(int frameWidth, int frameHeight){
-	m_proj = perspective(1.f, float(frameWidth) / frameHeight, 0.1f, 1000.f);
+	if(frameHeight == 0){
+		m_proj = perspective(1.f, float(frameWidth) / frameHeight, 0.1f, 1000.f);
+	}
+	
 }
 
 mat4 camera::getProjection(){
