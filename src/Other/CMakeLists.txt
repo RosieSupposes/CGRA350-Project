@@ -17,9 +17,6 @@ set(sources
 	"material.hpp"
 	"material.cpp"
 
-	"RNG.hpp"
-	"RNG.cpp"
-
 	"terrain.hpp"
 	"terrain.cpp"
 	

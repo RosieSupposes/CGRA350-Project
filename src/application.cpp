@@ -18,7 +18,6 @@
 #include "cgra/cgra_image.hpp"
 #include "cgra/cgra_shader.hpp"
 #include "cgra/cgra_wavefront.hpp"
-#include "Other/RNG.hpp"
 
 
 using namespace std;
@@ -27,29 +26,22 @@ using namespace glm;
 
 
 Application::Application(GLFWwindow *window) : m_window(window) {
-	const auto now = std::chrono::system_clock::now();
-	auto time = now.time_since_epoch();
-	m_seed = time.count() % 1000;
-	std::cout << "seed: " << m_seed << std::endl; 
+
 	readSettings();
 	
 	loadShaders(styles[0]);
 	
-	load_scene_objects();
-	
+	fireflies = firefly_cluster(fireflyCount);
+	m_terrain = terrain(CGRA_SRCDIR + std::string("//res//assets//land.obj"));
+
+	trees = forest(m_terrain);
+	basic_water = basic_model(CGRA_SRCDIR + std::string("//res//assets//simple_water.obj"), vec3(0.0,0.9,0.9));
+
+	m_water = water_sim(&water_sim_enabled); 
+
 	m_camera = camera();
 	m_controller = keyboard_controller();
 	m_controller.m_camera = &m_camera;
-}
-
-void Application::load_scene_objects()
-{
-	fireflies = firefly_cluster(fireflyCount);
-	m_terrain = terrain(CGRA_SRCDIR + std::string("//res//assets//land.obj"), scale(mat4(1), vec3(8)));
-	trees = forest(m_terrain);
-	basic_water = basic_model(CGRA_SRCDIR + std::string("//res//assets//simple_water.obj"), vec3(0.0,0.9,0.9));
-	m_water = water_sim(&water_sim_enabled); 
-
 }
 
 void Application::loadShaders(const char * type){
@@ -257,12 +249,6 @@ void Application::renderGUI() {
 	ImGui::SameLine();
 	if (ImGui::Button("Screenshot")) rgba_image::screenshot(true);
 
-	if(ImGui::InputInt("Seed", &m_seed))
-	{
-		m_seed = glm::max(glm::min(m_seed, 1000), 0);
-		RNG::resetRNG(m_seed, 0);
-		load_scene_objects();
-	}
 	// finish creating window
 	ImGui::End();
 

@@ -16,6 +16,7 @@
 class forest {
 private:
     std::vector<tree> trees;
+    
     void reset_trees(terrain terrain, int treeCount, int recursion_depth, string style);
 
 public:
