@@ -37,4 +37,5 @@ void material::load(const mat4 &modelview, const mat4 &proj){
     glUniform1f(glGetUniformLocation(m_shader, "uBrightness"), 1.0f);
     glUniform1f(glGetUniformLocation(m_shader, "uMetallic"), m_metallic);
     glUniform1f(glGetUniformLocation(m_shader, "uRoughness"), m_roughness);
+    glBindTexture(GL_TEXTURE_2D, m_texture);
 }
