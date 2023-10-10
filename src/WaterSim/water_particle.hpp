@@ -40,8 +40,6 @@ struct Particle {
         float pressure = 0.0f;
         float density = 0.0f;
 
-        std::vector<Particle*> neighbours;
-
         glm::vec3 position = glm::vec3(0,0,0);
         glm::vec3 velocity  = glm::vec3(0,0,0);
 

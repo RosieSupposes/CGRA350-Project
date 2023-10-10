@@ -16,22 +16,16 @@ water_sim::water_sim(bool* enabled) {
 }
 
 void water_sim::simulate(){
-	//find_neighbours();
-
 	for (int i = 0; i < (int)particles.size(); i++){
 		// Calculate density
 		calculate_pressure_density(i);
-		particles[i].velocity += vec3(0.0f, -gravity, 0.0f) * timestep;
 	}
 
-	for (int i = 0; i < (int)particles.size(); i++){
-		// Calculate pressure force
-		vec3 pressure_force = calculate_pressure_force(i);
-		particles[i].velocity += (pressure_force / particles[i].density) * timestep;
-	}
 
 	for (int i = 0; i < (int)particles.size(); i++){
 		// Update velocity
+		vec3 total_force = calculate_force(i);
+		particles[i].velocity += (total_force / particles[i].density) * timestep;
 		particles[i].position += particles[i].velocity * timestep;
 
 
@@ -61,9 +55,6 @@ void water_sim::draw(const mat4 &view, const mat4 &proj, material &material) {
 	for (int i = 0; i < (int)particles.size(); i++){
 		particles[i].draw(view, proj, material);
 	}
-	Particle p;
-	p.position = vec3(0,0,0);
-	p.draw(view, proj, material);
 }
 
 void water_sim::renderGUI(int height, int pos){
@@ -96,10 +87,7 @@ void water_sim::generate_particles(){
 			for (int z = 0; z < grid_size; z++){
 				if ((int)particles.size() < particle_count){
 					Particle p;
-					float rand_x = (static_cast<float>(rand()) / RAND_MAX - 0.5f) * spacing;
-                    float rand_y = (static_cast<float>(rand()) / RAND_MAX - 0.5f) * spacing;
-                    float rand_z = (static_cast<float>(rand()) / RAND_MAX - 0.5f) * spacing;
-					p.position = vec3(x, y, z) * spacing + vec3(rand_x, rand_y, rand_z);
+					p.position = vec3(x, y, z) * spacing;
 					particles.push_back(p);
 				}
 			}
@@ -130,59 +118,41 @@ void water_sim::generate_particles(){
 }
 
 float water_sim::smoothing_kernel(float dist){
-	if (dist >= smoothing_radius) return 0.0f;
-
-	float volume = (PI * pow(smoothing_radius, 4.0f)) / 6;
-	return (smoothing_radius - dist) * (smoothing_radius - dist) / volume;
+	float x = 1.0f - (dist * dist) / (smoothing_radius * smoothing_radius);
+    return 315.f / ( 64.f * PI * (smoothing_radius * smoothing_radius)) * x * x * x;
 }
 
 float water_sim::smoothing_kernel_derivative(float dist){
-	if (dist >= smoothing_radius) return 0.0f;
-	float scale = 12 / (PI * pow(smoothing_radius, 4.0f));
-	return (dist - smoothing_radius) * scale;
+	float x = 1.0f - dist / smoothing_radius;
+	return -45 / (PI * pow(smoothing_radius, 4.0f)) * pow(x, 2.0f);
 }
 
 void water_sim::calculate_pressure_density(int n){
+	vec3 pos = particles[n].position;
 	float density = 0.0f;
 	for (int j = 0; j < (int)particles.size(); j++){
-		vec3 pos2 = particles[j].position;
-		float dist = length(particles[n].position - pos2);
-		float influence = smoothing_kernel(dist);
-		density += mass * influence;
-	}
-	particles[n].density = density;
-	particles[n].pressure = pressure_multiplier * (density - target_density);
-}
+		vec3 diff = particles[j].position - pos;
+		float dist = dot(diff, diff);
 
-vec3 water_sim::calculate_pressure_force(int n){
-	vec3 force = vec3(0.0f, 0.0f, 0.0f);
-	for (int j = 0; j < (int)particles.size(); j++){
-		vec3 offset = particles[n].position - particles[j].position;
-		float dist = length(offset);
-		vec3 dir = dist == 0 ? random_dir() : normalize(offset);
-		float influence = smoothing_kernel(dist);
-		float shared_pressure = (particles[n].pressure + particles[j].pressure) / 2;
-		force += shared_pressure * dir * influence * mass / particles[j].density;
-	}
-	return force;		
-}
-
-vec3 water_sim::random_dir(){
-	float x = (float)rand() / (float)RAND_MAX;
-	float y = (float)rand() / (float)RAND_MAX;
-	float z = (float)rand() / (float)RAND_MAX;
-	return normalize(vec3(x, y, z));
-}
-
-void water_sim::find_neighbours(){
-	concurrency::parallel_for(0, (int)particles.size(), [&](int i){
-		particles[i].neighbours.clear();
-		for (int j = 0; j < (int)particles.size(); j++){
-			if (i == j) continue;
-			float dist = length(particles[i].position - particles[j].position);
-			if (dist < smoothing_radius * 2){
-				particles[i].neighbours.push_back(&particles[j]);
-			}
+		if (smoothing_radius * smoothing_radius * 0.004 > dist *0.004){
+			density += mass * smoothing_kernel(dist * 0.004);
 		}
-	});
+	}
+	particles[n].density = density + 0.000001f;
+	particles[n].pressure = pressure_multiplier * (density - target_density);
+
+	if (particles[n].pressure <= 0) particles[n].pressure = 0.000001f;
+}
+
+vec3 water_sim::calculate_force(int n){
+	vec3 pressure = vec3(0.0f, 0.0f, 0.0f);
+	for (int j = 0; j < (int)particles.size(); j++){
+		if (j == n) continue;
+		float dist = length(particles[j].position - particles[n].position);
+		if (dist < smoothing_radius * 2){
+			vec3 dir = normalize(particles[n].position - particles[j].position);
+			pressure += (particles[n].pressure / (particles[n].density * particles[n].density) + particles[j].pressure / (particles[j].density * particles[j].density)) * smoothing_kernel_derivative(dist) * dir;
+		}
+	}
+	return -pressure + vec3(0, -gravity, 0);		
 }

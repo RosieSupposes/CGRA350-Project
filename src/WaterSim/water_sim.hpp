@@ -32,7 +32,7 @@ public:
     float smoothing_kernel_derivative(float dist);
     void calculate_pressure_density(int n);
     glm::vec3 random_dir();
-    glm::vec3 calculate_pressure_force(int n);
+    glm::vec3 calculate_force(int n);
 
     void find_neighbours();
 
