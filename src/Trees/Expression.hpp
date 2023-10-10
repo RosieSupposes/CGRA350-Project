@@ -3,6 +3,7 @@
 //std
 #include <random>
 #include <string>
+#include <memory>
 
 // glm
 #include <glm/glm.hpp>

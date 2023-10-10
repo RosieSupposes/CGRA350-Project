@@ -42,19 +42,18 @@ void forest::reload(terrain terrain, int count, int recurison_depth, string styl
 
 void forest::reset_trees(terrain terrain, int treeCount, int recursion_depth, string style){
 	trees.clear();
-	SquirrelRNG rng = SquirrelRNG();
 	Ray ray{vec3(0), vec3(0,-1,0), 20};
 	for(int t = 0; t < treeCount; t++)
 	{
 		float x = RNG::getRandomFloat(-20,20);
 		float z = RNG::getRandomFloat(-20,20);
 		//ray.point = vec3(x,ray.length,z);
-		ray.point = vec3(x,20,z);		
+		ray.point = vec3(x,ray.length+1,z);		
 		Collision col = terrain.checkCollision(ray);
 		if(col.hit){
 			std::cout << "Placed tree " << t << " at point: (" << col.point.x << ", " << col.point.y 
 			<< ", " << col.point.z << ")" << std::endl;
-			trees.push_back(tree(translate(mat4(1), col.point), recursion_depth, style));
+			trees.push_back(tree(translate(mat4(1), col.point+vec3(0,-1,0)), recursion_depth, style));
 		}
 		else
 		{

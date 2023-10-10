@@ -6,9 +6,6 @@ using namespace glm;
 
 SquirrelRNG::SquirrelRNG()
 {
-    static int count = 0 ;
-    count++;
-    std::cout << "Creating RNG no " << count << std::endl;
     resetSeedAndPosition(0, 0);
 }
 SquirrelRNG::SquirrelRNG(unsigned int seed){
