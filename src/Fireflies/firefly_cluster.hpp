@@ -25,6 +25,7 @@ private:
 	//std::mt19937 gen;
 	std::uniform_real_distribution<> random_small_vector;
 
+
 	int fireflyCount = 100;
 
 	float absorption = 10.0f;   //between 0.01 and 100

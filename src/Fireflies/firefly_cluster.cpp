@@ -12,9 +12,9 @@ using namespace glm;
 using namespace std;
 
 firefly_cluster::firefly_cluster(int count) {
+	min_bounds = vec3(-10, 5, -20);
+	max_bounds = vec3(10, 10, 20);
 	reload(count);
-	min_bounds = vec3(-20, 5, -20);
-	max_bounds = vec3(20, 10, 20);
 
 	//gen = mt19937(rd()); // seed the generator
 	float range = 1.5f;
@@ -29,12 +29,18 @@ void firefly_cluster::reset_flies(int fireflyCount) {
 	fireflies.clear();
 	for (int f = 0; f < fireflyCount; f++) {
 		float range = 38;
+		//vec3 randomPosition = vec3(
+		//	-(range / 2) + range * ((float)std::rand()) / RAND_MAX,//range between -10 to 10
+		//	10 + 10 * ((float)std::rand()) / RAND_MAX, //range between 10 to 20
+		//	-(range / 2) + range * ((float)std::rand()) / RAND_MAX //range between -10 to 10
+		//);
 		vec3 randomPosition = vec3(
-			-(range / 2) + range * ((float)std::rand()) / RAND_MAX,//range between -10 to 10
-			10 + 10 * ((float)std::rand()) / RAND_MAX, //range between 10 to 20
-			-(range / 2) + range * ((float)std::rand()) / RAND_MAX //range between -10 to 10
+			get_random_num(min_bounds.x, max_bounds.x),
+			get_random_num(min_bounds.y, max_bounds.y),
+			get_random_num(min_bounds.z, max_bounds.z)
 		);
 
+		//cout << randomPosition.x << "," << randomPosition.y << "," << randomPosition.z << endl;
 		float brightness = (rand() % 11) / 10.0f;
 		vec3 search_precison((rand() % 2) / 100.0f, (rand() % 2) / 100.0f, (rand() % 2) / 100.0f);
 		fireflies.push_back(firefly(randomPosition, brightness, search_precison));
@@ -86,12 +92,12 @@ vec3 firefly_cluster::towards_brightest(firefly f) {
 }
 
 vec3 firefly_cluster::away_from_each_other(firefly f) {
-	float d = 1.5f;
+	float d = 6.0f;
 	vec3 v(0);
-	for (firefly* o : f.neighbours) {
-		if ((*o).pos != f.pos) {
-			if (distance((*o).pos, f.pos) < d) {
-				v = v - ((*o).pos - f.pos);
+	for (firefly o : fireflies) {
+		if (&o != &f) {
+			if (distance((o).pos, f.pos) <= d) {
+				v = v - ((o).pos - f.pos);
 			}
 		}
 	}
@@ -142,7 +148,7 @@ void firefly_cluster::limit_velocity(firefly& f) {
 }
 
 float firefly_cluster::get_random_num(float lower, float upper) {
-	return lower + (rand() / RAND_MAX) * (upper - lower);
+	return lower + (float(rand()) / float(RAND_MAX)) * (upper - lower);
 }
 
 void firefly_cluster::simulate() {
@@ -174,7 +180,7 @@ void firefly_cluster::simulate() {
 
 		vec3 v2 = away_from_each_other(f);
 		vec3 v3 = within_bounds(f);
-		f.velocity = f.velocity + v1 + v2 + v3;
+		f.velocity = f.velocity + (2.0f * v1) + (5.0f * v2) + (1.0f * v3);
 		limit_velocity(f);
 		f.pos = f.pos + f.velocity;
 	}
@@ -207,7 +213,7 @@ void firefly_cluster::get_closest_fireflies(firefly& f) {
 	}
 }
 
-void firefly_cluster::draw(const mat4& view, const mat4& proj, material &material) {
+void firefly_cluster::draw(const mat4& view, const mat4& proj, material& material) {
 	//cout << fireflies[0].pos.x << "," << fireflies[0].pos.y << "," << fireflies[0].pos.z << endl;
 	for (firefly ff : fireflies) {
 		ff.draw(view, proj, material);
@@ -223,7 +229,7 @@ void firefly_cluster::renderGUI(int height, int pos) {
 	if (ImGui::InputInt("Fireflies", &fireflyCount)) {
 		this->reload(fireflyCount);
 	}
-	
+
 	// finish creating window
 	ImGui::End();
 }
