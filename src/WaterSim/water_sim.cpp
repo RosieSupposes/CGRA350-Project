@@ -16,13 +16,13 @@ water_sim::water_sim(bool* enabled) {
 }
 
 void water_sim::simulate(){
-	for (int i = 0; i < (int)particles.size(); i++){
+	concurrency::parallel_for(0, (int)particles.size(), [&](int i){
 		// Calculate density
 		calculate_pressure_density(i);
-	}
+	});
 
 
-	for (int i = 0; i < (int)particles.size(); i++){
+	concurrency::parallel_for(0, (int)particles.size(), [&](int i){
 		// Update velocity
 		vec3 total_force = calculate_force(i);
 		particles[i].velocity += (total_force / particles[i].density) * timestep;
@@ -43,7 +43,7 @@ void water_sim::simulate(){
 			particles[i].position.z = half_bounds.z * sign(particles[i].position.z);
 			particles[i].velocity.z *= -1.0f * bound_dampening;
 		}
-	}
+	});
 }
 
 void water_sim::reload(){
@@ -74,6 +74,7 @@ void water_sim::renderGUI(int height, int pos){
 	ImGui::SliderFloat("Mass", &mass, 0.0f, 100.0f);
 	ImGui::SliderFloat("Target Density", &target_density, 0.0f, 100.0f);
 	ImGui::SliderFloat("Pressure Multiplier", &pressure_multiplier, 0.0f, 100.0f);
+	ImGui::SliderFloat("Viscosity", &viscosity, 0.0f, 100.0f);
 	ImGui::SliderFloat("Gravity", &gravity, 0.0f, 100.0f);
 
 	ImGui::End();
@@ -109,12 +110,17 @@ void water_sim::generate_particles(){
 	average_z /= particles.size();
 	average_y /= particles.size();
 
+	float rand_x = rand() / (float)INT_MAX;
+	float rand_y = rand() / (float)INT_MAX;
+	float rand_z = rand() / (float)INT_MAX;
+
 	// Center the particles.
 	for (int i = 0; i < (int)particles.size(); i++) {
-		particles[i].position.x -= average_x;
-		particles[i].position.z -= average_z;
-		particles[i].position.y -= average_y;
+		particles[i].position.x -= average_x + rand_x;
+		particles[i].position.z -= average_z + rand_z;
+		particles[i].position.y -= average_y + rand_y;
 	}
+	
 }
 
 float water_sim::smoothing_kernel(float dist){
@@ -130,14 +136,14 @@ float water_sim::smoothing_kernel_derivative(float dist){
 void water_sim::calculate_pressure_density(int n){
 	vec3 pos = particles[n].position;
 	float density = 0.0f;
-	for (int j = 0; j < (int)particles.size(); j++){
+	concurrency::parallel_for(0, (int)particles.size(), [&](int j){
 		vec3 diff = particles[j].position - pos;
 		float dist = dot(diff, diff);
 
 		if (smoothing_radius * smoothing_radius * 0.004 > dist *0.004){
 			density += mass * smoothing_kernel(dist * 0.004);
 		}
-	}
+	});
 	particles[n].density = density + 0.000001f;
 	particles[n].pressure = pressure_multiplier * (density - target_density);
 

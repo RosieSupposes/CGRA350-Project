@@ -43,6 +43,8 @@ struct Particle {
         glm::vec3 position = glm::vec3(0,0,0);
         glm::vec3 velocity  = glm::vec3(0,0,0);
 
+        std::vector<Particle*> neighbours;
+
 
         void simulate(float dt);
         void draw(const glm::mat4 &view, const glm::mat4 &proj, material &material);\
