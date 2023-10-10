@@ -17,6 +17,7 @@
 #include "Other/terrain.hpp"
 #include "WaterSim/water_sim.hpp"
 #include "Trees/forest.hpp"
+#include "Other/collider.hpp"
 
 
 
@@ -27,6 +28,9 @@ private:
 	// window
 	glm::vec2 m_windowsize;
 	GLFWwindow *m_window;
+
+	//to track randomness
+	int m_seed;
 
 	// last input
 	bool m_leftMouseDown = false;
@@ -98,6 +102,7 @@ private:
 	
 	void readSettings();
 	void loadShaders(const char* type);
+	void load_scene_objects();
 
 public:
 	// setup

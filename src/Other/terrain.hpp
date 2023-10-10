@@ -16,11 +16,12 @@ class terrain{
 private:
     basic_model m_model;
     collider m_collider;
-    glm::vec3 m_scale{8};
-    
     
 public:
     terrain();
     terrain(std::string file);
+    terrain(std::string file, glm::mat4 transform);
+    bool doesCollide(Ray ray);
+    Collision checkCollision(Ray ray);
 	void draw(const glm::mat4 &view, const glm::mat4 &proj, material material);
 }; 

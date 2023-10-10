@@ -27,9 +27,15 @@ void camera::move(vec3 displacement){
 
 void camera::update(){
 	m_position += m_velocity;
+	setInBounds();
 	m_view = rotate(mat4(1), m_pitch, vec3(1, 0, 0))
 		* rotate(mat4(1), m_yaw,   vec3(0, 1, 0))
 		* translate(mat4(1), m_position);
+}
+
+void camera::setInBounds(){
+	m_position = vec3(min(m_position.x, maxBounds.x), min(m_position.y, maxBounds.y), min(m_position.z, maxBounds.z));
+	m_position = vec3(max(m_position.x, minBounds.x), max(m_position.y, minBounds.y), max(m_position.z, minBounds.z));
 }
 
 void camera::reduceVelocity(){

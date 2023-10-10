@@ -29,11 +29,6 @@ basic_model::basic_model(std::string file)
 basic_model::basic_model(std::string file, vec3 colour)
 {
 	m_mesh = cgra::load_wavefront_data(file).build();
-}
-
-basic_model::basic_model(std::string file, vec3 colour)
-{
-	m_mesh = cgra::load_wavefront_data(file).build();
 	m_color = colour;
 }
 

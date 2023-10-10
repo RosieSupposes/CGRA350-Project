@@ -21,7 +21,7 @@ public:
     material m_material;
     basic_model();
     basic_model(cgra::mesh_builder mesh_builder);
-    basic_model(cgra::mesh_builder mesh_builder, mat4 transform);
+    basic_model(cgra::mesh_builder mesh_builder, glm::mat4 transform);
     basic_model(std::string file);
     basic_model(std::string file, glm::vec3 colour);
     basic_model(std::string file, glm::mat4 transform);
