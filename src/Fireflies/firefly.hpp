@@ -24,6 +24,7 @@ private:
 
 public:
 	float brightness;
+	cgra::gl_mesh gen_sphere();
 	glm::vec3 pos;
 	glm::vec3 velocity;
 	std::vector<firefly*> neighbours;

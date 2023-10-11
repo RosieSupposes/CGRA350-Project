@@ -21,8 +21,7 @@ struct cylinder_model {
     GLuint texture;
     
     void draw(const mat4 &view, const mat4 &proj, material &material){
-        mat4 modelview = view * modelTransform;
-        material.load(modelview, proj);
+        material.load(modelTransform, view, proj);
         mesh.draw(); // draw
     }
 };

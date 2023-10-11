@@ -2,6 +2,7 @@
 
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <algorithm>
 #include "opengl.hpp"
 #include "Other/collider.hpp"
 #include "Other/RNG.hpp"
@@ -12,27 +13,10 @@ forest::forest(){
 
 }
 
-void forest::renderGUI(terrain terrain, int height, int pos) {
-    ImGui::SetNextWindowPos(ImVec2(5, pos), ImGuiSetCond_Once);
-    ImGui::SetNextWindowSize(ImVec2(300, height), ImGuiSetCond_Once);
-    ImGui::Begin("Trees", 0);
-
-    ImGui::Text("Trees");
-    static int selected_tree_style = 0;
-    bool tree_style_changed = ImGui::Combo("Tree style", &selected_tree_style, tree_styles, sizeof(tree_styles) / sizeof(*tree_styles));
-    bool tree_count_changed = ImGui::InputInt("Trees", &treeCount);
-    bool tree_depth_changed = ImGui::InputInt("Recursion Depth", &recursion_depth);
-    if (tree_style_changed || tree_count_changed || tree_depth_changed) {
-        string style = std::string(tree_styles[selected_tree_style]);
-        reload(terrain, treeCount, recursion_depth, std::string(style));
-    }
-
-    ImGui::End();
-}
-
-forest::forest(terrain terrain)
+forest::forest(terrain terrain, mat4 transform, int treeCount, int recursion_depth, string style)
 {
-	reload(terrain, treeCount, recursion_depth, std::string(tree_styles[0]));
+	m_transform = transform;
+	reload(terrain, treeCount, recursion_depth, style);
 }
 
 void forest::reload(terrain terrain, int count, int recurison_depth, string style)
@@ -42,23 +26,25 @@ void forest::reload(terrain terrain, int count, int recurison_depth, string styl
 
 void forest::reset_trees(terrain terrain, int treeCount, int recursion_depth, string style){
 	trees.clear();
+	float scale = 30;
 	Ray ray{vec3(0), vec3(0,-1,0), 20};
 	for(int t = 0; t < treeCount; t++)
 	{
-		float x = RNG::getRandomFloat(-20,20);
-		float z = RNG::getRandomFloat(-20,20);
-		//ray.point = vec3(x,ray.length,z);
-		ray.point = vec3(x,ray.length+1,z);		
+		float x = RNG::getRandomFloat(-scale, scale);
+		float z = RNG::getRandomFloat(-scale, scale);
+		vec4 pp = m_transform * vec4(x,ray.length+1,z,1);
+		ray.point = vec3(pp.x,pp.y,pp.z);	
 		Collision col = terrain.checkCollision(ray);
 		if(col.hit){
 			std::cout << "Placed tree " << t << " at point: (" << col.point.x << ", " << col.point.y 
 			<< ", " << col.point.z << ")" << std::endl;
-			trees.push_back(tree(translate(mat4(1), col.point+vec3(0,-1,0)), recursion_depth, style));
+			trees.push_back(tree(translate(mat4(1), col.point+vec3(0,-0.2, 0)), recursion_depth, style));
 		}
 		else
 		{
 			std::cerr << "Tree missed terrain! point: (" << ray.point.x << ", " << ray.point.y 
 			<< ", " << ray.point.z << ")" << std::endl;
+			t--;
 		}
 	}
 }

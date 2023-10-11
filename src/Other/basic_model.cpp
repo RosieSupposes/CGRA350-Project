@@ -48,7 +48,6 @@ basic_model::basic_model(std::string file, mat4 transform, vec3 colour)
 void basic_model::draw(const mat4 &view, const mat4 &proj, material material)
 {
 	// set up the shader for every draw call
-    mat4 modelview = view * m_modelTransform;
-	material.load(modelview, proj);
+	material.load(m_modelTransform, view, proj);
 	m_mesh.draw();
 } 

@@ -45,6 +45,12 @@ private:
 	double max_frames = -1;
 	std::vector<double> frames;
 
+	//Frame stuff
+	//Background colours
+	vec4 bg{0.016f, 0.102f, 0.251f, 1.0f};
+	GLuint framebuffer = 0;
+	GLuint depthMap = 0;
+
 	//Camera
 	camera m_camera;
 
@@ -52,13 +58,38 @@ private:
 	keyboard_controller m_controller;
 
 	//Style
-	const char* styles[3] = { "PBR", "Sketched", "Pixel"};
+	vec3 m_lightPosition{0, 4, 0};
+	float m_lightPower = 35.0f;
+ 	const char* styles[3] = { "PBR", "Sketched", "Pixel"};
+	int m_selected_style = 0;
+	float m_sketchedC = 4;
+	float m_metallic = 0;
+	float m_roughness = 0;
+	GLuint m_shaderPBR = 0;
+	GLuint m_shaderSketched = 0;
+	GLuint m_shaderPixel = 0;
+	GLuint m_strokeMap = 0;
+	GLuint m_pixelDitherMap = 0;
+	GLuint firefly_texture = 0;
+	GLuint trunk_texture = 0;
+	GLuint leaf_texture = 0;
+	GLuint terrain_texture = 0;
+	GLuint basic_water_texture = 0;
+	GLuint water_sim_texture = 0;
+
+	material m_depth_material;
 
 	// geometry
 		//trees
 	material m_trunk_material;
 	material m_leaf_material;
-	forest trees;
+	std::vector<forest> trees;
+
+	//gui fields
+    int treeCount = 50;
+    int recursion_depth = 3;
+    const char* tree_styles[2] = { "Basic", "Complex"};
+
 	
 		//fireflies
 	int fireflyCount = 100;
@@ -86,10 +117,10 @@ private:
 
 	GLuint buildVertAndFragShader(string file_head);
 	
-	void renderFireflies(const glm::mat4 &view, const glm::mat4 proj);
-	void renderTrees(const glm::mat4 &view, const glm::mat4 proj);
-	void renderWater(const glm::mat4 &view, const glm::mat4 proj);
-	void renderTerrain(const glm::mat4 &view, const glm::mat4 proj);
+	void renderFireflies(const mat4 &view, const mat4 proj, material& material);
+	void renderTrees(const mat4 &view, const mat4 proj, material& trunk_material, material& leaf_material);
+	void renderWater(const mat4 &view, const mat4 proj, material& w_material, material& b_material);
+	void renderTerrain(const mat4 &view, const mat4 proj, material& material);
 	
 	void simulate();
 	void simulateFireflies();
@@ -101,7 +132,10 @@ private:
 	void adjustFocalPoint(vec3 amount, bool setAbsolute);
 	
 	void readSettings();
-	void loadShaders(const char* type);
+	void changeStyle(const char* type);
+	void changeShaders(GLuint shader);
+	void changeEffectTextures(GLuint effectTexture);
+	void loadShadersAndMaterials();
 	void load_scene_objects();
 
 public:
@@ -117,6 +151,7 @@ public:
 	void renderGUI();
 
 	void renderShaderGUI(int height, int pos);
+	void renderForestGUI(int height, int pos);
 	void renderWaterGUI(int height, int pos);
 
 	// input callbacks
