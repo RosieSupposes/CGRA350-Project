@@ -6,14 +6,14 @@
 
 using namespace glm;
 
-firefly::firefly(glm::vec3 p, float b, glm::vec3 sp){
+firefly::firefly(glm::vec3 p, int b, glm::vec3 sp){
     static cgra::gl_mesh sharedMesh = cgra::load_wavefront_data(CGRA_SRCDIR + std::string("/res//assets//placeholderSphere.obj")).build();
 	m_mesh = sharedMesh;
     m_color = glm::vec3(0.8,0.7,0.2);
     
 
 	pos = p;
-	brightness = b;
+	brightness_step = b;
 	search_precision = sp;
 	//m_texture;
 }
