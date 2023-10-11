@@ -17,7 +17,7 @@ firefly_cluster::firefly_cluster(int count) {
 	reload(count);
 
 	//gen = mt19937(rd()); // seed the generator
-	float range = 1.5f;
+	float range = 2.5f;
 	random_small_vector = uniform_real_distribution<>(-range, range); // define the range
 }
 
@@ -40,10 +40,30 @@ void firefly_cluster::reset_flies(int fireflyCount) {
 			get_random_num(min_bounds.z, max_bounds.z)
 		);
 
-		//cout << randomPosition.x << "," << randomPosition.y << "," << randomPosition.z << endl;
-		float brightness = (rand() % 11) / 10.0f;
+
+		int brightness_step = rand() % (max_brightness_step + 1);
 		vec3 search_precison((rand() % 2) / 100.0f, (rand() % 2) / 100.0f, (rand() % 2) / 100.0f);
-		fireflies.push_back(firefly(randomPosition, brightness, search_precison));
+
+		firefly fly = firefly(randomPosition, brightness_step, search_precison);
+		fly.brightness = get_brightness(brightness_step);
+		fireflies.push_back(fly);
+	}
+}
+
+float firefly_cluster::get_brightness(int s) {
+	int peak = 9*max_brightness_step/10;
+	if (s < 150) {
+		float b = 0.053;
+		float c = -10;
+		float a = 1.0f / (pow(Math_E, (peak * b) + c));
+		return a * pow(Math_E, ((b * s) + c));
+	}
+	else {
+		//if 150 < s < 180
+		float b = -0.15;
+		float c = -10;
+		float a = 1.0f / (pow(Math_E, ((peak - max_brightness_step) * b) + c));
+		return a * pow(Math_E, ((b * (s - max_brightness_step)) + c));
 	}
 }
 
@@ -58,47 +78,60 @@ float firefly_cluster::attraction(firefly i, firefly j) {
 }
 
 vec3 firefly_cluster::towards_brightest(firefly f) {
-	vec3 v(0);
-	vec3 brightest_pos;
-	float brightest_value = -1;
-	for (firefly* o : f.neighbours) {
-		float other_brightness = o->brightness;
-		//cout << other_brightness << endl;
-		if (other_brightness > f.brightness && other_brightness > brightest_value) {
-			//vec3 m(attraction(o, f) * (o.pos - f.pos) + alpha * o.search_precision);
-			//cout << move.x << "," << move.y << "," << move.z << endl;
-			brightest_pos = o->pos;
-			brightest_value = other_brightness;
-			if (brightest_value >= max_brightness) {
-				break;
-			}
-			//cout << "bright set" << endl;
-		}
-	}
+	//vec3 v(0);
+	//vec3 brightest_pos;
+	//float brightest_value = -1;
+	//for (firefly* o : f.neighbours) {
+	//	float other_brightness = o->brightness;
+	//	//cout << other_brightness << endl;
+	//	if (other_brightness > f.brightness && other_brightness > brightest_value) {
+	//		//vec3 m(attraction(o, f) * (o.pos - f.pos) + alpha * o.search_precision);
+	//		//cout << move.x << "," << move.y << "," << move.z << endl;
+	//		brightest_pos = o->pos;
+	//		brightest_value = other_brightness;
+	//		if (brightest_value >= 0.95f) {
+	//			break;
+	//		}
+	//		//cout << "bright set" << endl;
+	//	}
+	//}
 
-	if (brightest_value > -1) {
-		vec3 m((brightest_pos - f.pos) * 0.5f);
-		v = m;
-		//cout << "no bright" << endl;
+	//if (brightest_value > -1) {
+	//	vec3 m((brightest_pos - f.pos) * 0.5f);
+	//	v = m;
+	//	//cout << "no bright" << endl;
+	//}
+	//else {
+	//	float x = random_small_vector(gen);
+	//	float y = random_small_vector(gen);
+	//	float z = random_small_vector(gen);
+	//	v = vec3(x, y, z);
+	//	//v = vec3(max);
+	//}
+
+	vec3 v(0.0f);
+	for (firefly *j : f.neighbours) {
+		//if ((*j).brightness > f.brightness) {
+			vec3 m(attraction(f, (*j)) * ((*j).pos - f.pos) + alpha * (*j).search_precision);
+			//cout << move.x << "," << move.y << "," << move.z << endl;
+			v = v + m;
+		//}
 	}
-	else {
-		float x = random_small_vector(gen);
-		float y = random_small_vector(gen);
-		float z = random_small_vector(gen);
-		v = vec3(x, y, z);
-		//v = vec3(max);
-	}
-	return v;
+	//cout << v.x << "," << v.y << "," << v.z << endl;
+	
+	return 0.5f*v;
 }
 
 vec3 firefly_cluster::away_from_each_other(firefly f) {
-	float d = 6.0f;
+	float d = 4.0f;
 	vec3 v(0);
-	for (firefly o : fireflies) {
-		if (&o != &f) {
-			if (distance((o).pos, f.pos) <= d) {
-				v = v - ((o).pos - f.pos);
-			}
+	for (firefly* o : f.neighbours) {
+		float space = distance((*o).pos, f.pos);
+		if (space <= 0.7) {
+			return -v;
+		}
+		else if (space <= d) {
+			v = v - ((*o).pos - f.pos);
 		}
 	}
 	return v;
@@ -159,18 +192,7 @@ void firefly_cluster::simulate() {
 
 	//cout << fireflies[0].pos.x << "," << fireflies[0].pos.y << "," << fireflies[0].pos.z << endl;
 	//update position
-	//for (firefly& i : fireflies) {
-	//	vec3 move(0, 0, 0);
-	//	for (firefly j : fireflies) {
-	//		if (j.brightness > i.brightness) {
-	//			vec3 m(attraction(i, j) * (j.pos - i.pos) + alpha * j.search_precision);
-	//			//cout << move.x << "," << move.y << "," << move.z << endl;
-	//			move = move + m;
-	//		}
-	//	}
-	//	//cout << move.x << "," << move.y << "," << move.z << endl;
-	//	i.pos = i.pos + 0.1f * move;
-	//}
+	//
 
 	for (firefly& f : fireflies) {
 		//cout << f.brightness << endl;
@@ -180,26 +202,27 @@ void firefly_cluster::simulate() {
 
 		vec3 v2 = away_from_each_other(f);
 		vec3 v3 = within_bounds(f);
-		f.velocity = f.velocity + (2.0f * v1) + (5.0f * v2) + (1.0f * v3);
+		f.velocity = f.velocity + (2.0f * v1) + (1.0f * v2) + (4.0f * v3);
 		limit_velocity(f);
 		f.pos = f.pos + f.velocity;
 	}
 
 	//update brightness
 	for (firefly& i : fireflies) {
-		if (i.brightness >= max_brightness) {
-			i.brightness = 0;
+		if (i.brightness_step >= max_brightness_step) {
+			i.brightness_step = 0;
 		}
 		else {
-			i.brightness += brightness_step;
+			i.brightness_step += 1;
 		}
-		//cout << i.brightness << endl;
+		//cout << i.brightness << ":" << i.brightness_step << endl;
 
 		for (firefly* j : i.neighbours) {
-			if ((*j).brightness >= max_brightness) {
-				i.brightness += brightness_step;
+			if ((*j).brightness_step >= max_brightness_step) {
+				i.brightness_step += 1;
 			}
 		}
+		i.brightness = get_brightness(i.brightness_step);
 	}
 }
 

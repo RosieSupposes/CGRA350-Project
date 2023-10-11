@@ -29,10 +29,13 @@ private:
 	int fireflyCount = 100;
 
 	float absorption = 10.0f;   //between 0.01 and 100
-	float max_attraction = 1;   //apparently 1 is good
+	float max_attraction = 0.9;   //apparently 1 is good
 	float alpha = 0.5f;                //between 0 and 1
-	float max_brightness = 1.0f;
-	float brightness_step = 0.001f;
+
+	//float max_brightness = 1.0f;
+	//float brightness_step = 0.001f;
+
+	int max_brightness_step = 240;
 
 	float neighbourhood_size = 12.0f;
 
@@ -45,6 +48,7 @@ private:
 
 	float speed_limit = 0.01f;
 
+	float get_brightness(int brightness_step);
 	glm::vec3 towards_brightest(firefly f);
 	glm::vec3 away_from_each_other(firefly f);
 	glm::vec3 within_bounds(firefly f);
