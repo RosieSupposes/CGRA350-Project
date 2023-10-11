@@ -306,28 +306,46 @@ gl_mesh Turtle::cylinder(Circle base, Circle branch){
     vector<unsigned int> indices;
     vec3 center = (branch.center + base.center) / 2.0f;
 
+    // base center vertex
     mesh_vertex vertex;
     vertex.pos = base.center;
     vertex.norm = base.center - center;
+    vertex.uv = vec2(0.5f, 0.0f);
     vertices.push_back(vertex);
+    
+    //base circle vertices
     for (int i = 0; i < (int)base.points.size(); i++) {
         Vertex point = base.getPoints().at(i);
         point.id = id++;
         mesh_vertex vertex;
         vertex.pos = point.pos;
         vertex.norm = point.pos - center;
+        
+        float u = static_cast<float>(i) / static_cast<float>(base.points.size());
+        float v = 0.0f;
+        vertex.uv = vec2(u, v);
+        
         vertices.push_back(vertex);
     }
 
+    //branch center vertex
     vertex.pos = branch.center;
     vertex.norm = branch.center - center;
+    vertex.uv = vec2(0.5f, 1.0f);
     vertices.push_back(vertex);
+    
+    //branch circle vertices
     for (int i = 0; i < (int)branch.points.size(); i++) {
         Vertex point = branch.getPoints().at(i);
         point.id = id++;
         mesh_vertex vertex;
         vertex.pos = point.pos;
         vertex.norm = point.pos - center;
+        
+        float u = static_cast<float>(i) / static_cast<float>(base.points.size());
+        float v = 1.0f;
+        vertex.uv = vec2(u, v);
+        
         vertices.push_back(vertex);
     }
 
