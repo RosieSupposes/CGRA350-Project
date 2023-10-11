@@ -51,19 +51,20 @@ void firefly_cluster::reset_flies(int fireflyCount) {
 }
 
 float firefly_cluster::get_brightness(int s) {
-	int peak = 9*max_brightness_step/10;
-	if (s < 150) {
-		float b = 0.053;
+	int m = max_brightness_step;
+	int p = 9 * max_brightness_step / 10;
+	if (s < p) {
+		float b = 0.053; //slider
 		float c = -10;
-		float a = 1.0f / (pow(Math_E, (peak * b) + c));
+		float a = 1.0f / (pow(Math_E, (p * b) + c));
 		return a * pow(Math_E, ((b * s) + c));
 	}
 	else {
 		//if 150 < s < 180
-		float b = -0.15;
-		float c = -10;
-		float a = 1.0f / (pow(Math_E, ((peak - max_brightness_step) * b) + c));
-		return a * pow(Math_E, ((b * (s - max_brightness_step)) + c));
+		float f = -0.15; //slider
+		float g = -10 - (f * m);
+		float d = 1.0f / (pow(Math_E, (f * p + g)));
+		return d * pow(Math_E, (f * s + g));
 	}
 }
 
@@ -110,16 +111,16 @@ vec3 firefly_cluster::towards_brightest(firefly f) {
 	//}
 
 	vec3 v(0.0f);
-	for (firefly *j : f.neighbours) {
+	for (firefly* j : f.neighbours) {
 		//if ((*j).brightness > f.brightness) {
-			vec3 m(attraction(f, (*j)) * ((*j).pos - f.pos) + alpha * (*j).search_precision);
-			//cout << move.x << "," << move.y << "," << move.z << endl;
-			v = v + m;
+		vec3 m(attraction(f, (*j)) * ((*j).pos - f.pos) + alpha * (*j).search_precision);
+		//cout << move.x << "," << move.y << "," << move.z << endl;
+		v = v + m;
 		//}
 	}
 	//cout << v.x << "," << v.y << "," << v.z << endl;
-	
-	return 0.5f*v;
+
+	return 0.5f * v;
 }
 
 vec3 firefly_cluster::away_from_each_other(firefly f) {
