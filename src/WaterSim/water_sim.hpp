@@ -41,19 +41,20 @@ public:
 	void draw(const glm::mat4 &view, const glm::mat4 &proj, material &material);
 
     bool* enabled;
-    float timestep = 0.115f;
-    float bound_dampening = 0.85f;
+    float timestep = 23.7f;
+    float bound_dampening = 0.22f;
     int particle_count = 380;
-    float particle_spacing = 11.0f;
-    glm::vec3 bounds_size = glm::vec3(10.0f, 40.0f, 10.0f);
+
+    glm::vec3 top_left = glm::vec3(-5.0f, 100.0f, -5.0f);
+    glm::vec3 bottom_right = glm::vec3(5.0f, -3.0f, 5.0f); 
 
     // Water properties
-    float smoothing_radius = 0.365f;
+    float smoothing_radius = 0.85f;
     float mass = 1.0f;
-    float target_density = 2.4f;
-    float pressure_multiplier = 12.5f;
+    float target_density = 1.7f;
+    float pressure_multiplier = 12.06f;
     float gravity = 3.0f;
-    float viscosity = 0.1f;
+    float viscosity = 2.0f;
 
     int count = 0;
     bool running = false;
