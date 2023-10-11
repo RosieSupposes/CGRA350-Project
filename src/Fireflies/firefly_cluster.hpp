@@ -48,6 +48,10 @@ private:
 
 	float speed_limit = 0.01f;
 
+	float brightness_force = 2.0f;
+	float away_force = 1.0f;
+	float bounds_force = 4.0f;
+
 	float get_brightness(int brightness_step);
 	glm::vec3 towards_brightest(firefly f);
 	glm::vec3 away_from_each_other(firefly f);
@@ -63,7 +67,7 @@ public:
 	firefly_cluster(int count);
 	void reload(int count);
 	void simulate();
-	void draw(const glm::mat4& view, const glm::mat4& proj, material &material);
+	void draw(const glm::mat4& view, const glm::mat4& proj, material& material);
 	void renderGUI(int height, int pos);
 
 };

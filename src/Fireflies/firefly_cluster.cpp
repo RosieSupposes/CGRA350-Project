@@ -203,7 +203,7 @@ void firefly_cluster::simulate() {
 
 		vec3 v2 = away_from_each_other(f);
 		vec3 v3 = within_bounds(f);
-		f.velocity = f.velocity + (2.0f * v1) + (1.0f * v2) + (4.0f * v3);
+		f.velocity = f.velocity + (brightness_force * v1) + (away_force * v2) + (bounds_force * v3);
 		limit_velocity(f);
 		f.pos = f.pos + f.velocity;
 	}
@@ -249,10 +249,17 @@ void firefly_cluster::renderGUI(int height, int pos) {
 	ImGui::SetNextWindowSize(ImVec2(300, height), ImGuiSetCond_Once);
 	ImGui::Begin("Fireflies", 0);
 
-	ImGui::Text("Fireflies");
 	if (ImGui::InputInt("Fireflies", &fireflyCount)) {
 		this->reload(fireflyCount);
 	}
+
+	ImGui::InputInt("Flash Speed", &max_brightness_step);
+	ImGui::InputFloat("Neighbourhood Size", &neighbourhood_size);
+	ImGui::InputFloat("Firefly Speed", &speed_limit);
+
+	ImGui::InputFloat("Force towards brightest", &brightness_force);
+	ImGui::InputFloat("Force away from neighbours", &away_force);
+	ImGui::InputFloat("Force within bounds", &bounds_force);
 
 	// finish creating window
 	ImGui::End();
