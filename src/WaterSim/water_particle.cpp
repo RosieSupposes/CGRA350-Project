@@ -15,7 +15,7 @@ void Particle::simulate(float dt){
 void Particle::draw(const mat4 &view, const mat4 &proj, material &material){
     mat4 modelview = view;
     modelview = translate(modelview, position);
-    modelview = scale(modelview, vec3(0.3));
+    modelview = scale(modelview, vec3(0.4f));
     material.load(modelview, proj);
 	drawSphere();
 }

@@ -18,14 +18,29 @@ water_sim::water_sim(bool* enabled) {
 void water_sim::simulate(){
 	float delta_time = (float)glfwGetTime() - prev_time;
 	count++;
-	if (count % 10 == 0 && running){
+	if (count % 10 == 0 && running && particles.size() < 700){
 		// add randomness
 		float x_rand = rand() / (float)INT_MAX;
-		float y_rand = rand() / (float)INT_MAX;
 		float z_rand = rand() / (float)INT_MAX;
 
 		Particle p;
-		p.position = vec3(x_rand, y_rand, z_rand);
+		p.position = vec3(x_rand, -0.5f, z_rand);
+		particles.push_back(p);
+
+		// add randomness
+		x_rand = rand() / (float)INT_MAX;
+		z_rand = rand() / (float)INT_MAX;
+
+		p = Particle();
+		p.position = vec3(x_rand, -0.5f, z_rand);
+		particles.push_back(p);
+
+		// add randomness
+		x_rand = rand() / (float)INT_MAX;
+		z_rand = rand() / (float)INT_MAX;
+
+		p = Particle();
+		p.position = vec3(x_rand, -0.5f, z_rand);
 		particles.push_back(p);
 
 
@@ -47,19 +62,31 @@ void water_sim::simulate(){
 
 
 		// Check for collisions
-		vec3 half_bounds = bounds_size * 0.5f;
-		if (abs(particles[i].position.x) > half_bounds.x) {
-        	particles[i].position.x = half_bounds.x * sign(particles[i].position.x);
-        	particles[i].velocity.x *= -1.0f * bound_dampening;
-    	}
-		if (abs(particles[i].position.y) > half_bounds.y) {
-			particles[i].position.y = half_bounds.y * sign(particles[i].position.y);
-			particles[i].velocity.y *= -1.0f * bound_dampening;
+		if (particles[i].position.x < top_left.x){
+			particles[i].position.x = top_left.x;
+			particles[i].velocity.x *= -bound_dampening;
 		}
-		if (abs(particles[i].position.z) > half_bounds.z) {
-			particles[i].position.z = half_bounds.z * sign(particles[i].position.z);
-			particles[i].velocity.z *= -1.0f * bound_dampening;
+		if (particles[i].position.x > bottom_right.x){
+			particles[i].position.x = bottom_right.x;
+			particles[i].velocity.x *= -bound_dampening;
 		}
+		if (particles[i].position.y > top_left.y){
+			particles[i].position.y = top_left.y;
+			particles[i].velocity.y *= -bound_dampening;
+		}
+		if (particles[i].position.y < bottom_right.y){
+			particles[i].position.y = bottom_right.y;
+			particles[i].velocity.y *= -bound_dampening;
+		}
+		if (particles[i].position.z < top_left.z){
+			particles[i].position.z = top_left.z;
+			particles[i].velocity.z *= -bound_dampening;
+		}
+		if (particles[i].position.z > bottom_right.z){
+			particles[i].position.z = bottom_right.z;
+			particles[i].velocity.z *= -bound_dampening;
+		}
+
 	});
 	prev_time = (float)glfwGetTime();
 }
@@ -83,10 +110,10 @@ void water_sim::renderGUI(int height, int pos){
 	if (ImGui::Button("Reload")) reload();
 	ImGui::Checkbox("Running", &running);
 	ImGui::SliderFloat("Timestep", &timestep, 0.0f, 100.0f);
-	ImGui::SliderFloat3("Bounds Size", value_ptr(bounds_size), 0.0f, 100.0f);
+	ImGui::SliderFloat3("Bound Top Left", value_ptr(top_left), -100.0f, 100.0f);
+	ImGui::SliderFloat3("Bound Bottom Right", value_ptr(bottom_right), -100.0f, 100.0f);
 	ImGui::SliderFloat("Bounds Dampening", &bound_dampening, 0.0f, 1.0f);
 	ImGui::SliderInt("Particle Count", &particle_count, 0, 100000);
-	ImGui::SliderFloat("Particle Spacing", &particle_spacing, 0.0f, 100.0f);
 	ImGui::Text("Water Properties");
 	ImGui::SliderFloat("Smoothing Radius", &smoothing_radius, 0.0f, 100.0f);
 	ImGui::SliderFloat("Mass", &mass, 0.0f, 100.0f);
