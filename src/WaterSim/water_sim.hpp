@@ -17,6 +17,7 @@ private:
 	std::vector<Particle> particles;
     GLuint water_shader;
     float PI = 3.14159265359f;
+    bool multithread = false;
 
 
 public:
