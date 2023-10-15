@@ -47,7 +47,7 @@ struct Particle {
 
 
         void simulate(float dt);
-        void draw(const glm::mat4 &view, const glm::mat4 &proj, material &material);\
+        void draw(const glm::mat4 &view, const glm::mat4 &proj, material &material, glm::vec3 scale);
 };
 
 void drawSphere();

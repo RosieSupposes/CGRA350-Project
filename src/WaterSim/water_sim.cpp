@@ -18,32 +18,20 @@ water_sim::water_sim(bool* enabled) {
 void water_sim::simulate(){
 	float delta_time = (float)glfwGetTime() - prev_time;
 	count++;
-	if (count % 10 == 0 && running && particles.size() < 700){
-		// add randomness
-		float x_rand = rand() / (float)INT_MAX;
-		float z_rand = rand() / (float)INT_MAX;
-
-		Particle p;
-		p.position = vec3(x_rand, -0.5f, z_rand);
-		particles.push_back(p);
-
-		// add randomness
-		x_rand = rand() / (float)INT_MAX;
-		z_rand = rand() / (float)INT_MAX;
-
-		p = Particle();
-		p.position = vec3(x_rand, -0.5f, z_rand);
-		particles.push_back(p);
-
-		// add randomness
-		x_rand = rand() / (float)INT_MAX;
-		z_rand = rand() / (float)INT_MAX;
-
-		p = Particle();
-		p.position = vec3(x_rand, -0.5f, z_rand);
-		particles.push_back(p);
-
-
+	if (count % 10 == 0 && running && particles.size() < particle_count){
+		for (int x = 0; x < 3; x++){
+			for (int y = 0; y < 3; y++){
+				for (int z = 0; z < 3; z++){
+					float x_rand = rand() % 2;
+					float z_rand = rand() % 2;
+					
+					Particle p;
+					p.position = vec3(x/2.0f, y/2.0f, z/2.0f) + spawn_pos + vec3(x_rand, -0.5f, z_rand);
+					p.velocity = vec3(x_rand, -0.2f, z_rand);
+					particles.push_back(p);
+				}
+			}
+		}
 	}
 	concurrency::parallel_for(0, (int)particles.size(), [&](int i){
 		// Update estimated position
@@ -97,7 +85,7 @@ void water_sim::reload(){
 
 void water_sim::draw(const mat4 &view, const mat4 &proj, material &material) {
 	for (int i = 0; i < (int)particles.size(); i++){
-		particles[i].draw(view, proj, material);
+		particles[i].draw(view, proj, material, particle_scale);
 	}
 }
 
@@ -112,8 +100,10 @@ void water_sim::renderGUI(int height, int pos){
 	ImGui::SliderFloat("Timestep", &timestep, 0.0f, 100.0f);
 	ImGui::SliderFloat3("Bound Top Left", value_ptr(top_left), -100.0f, 100.0f);
 	ImGui::SliderFloat3("Bound Bottom Right", value_ptr(bottom_right), -100.0f, 100.0f);
+	ImGui::SliderFloat3("Spawn Position", value_ptr(spawn_pos), -100.0f, 100.0f);
 	ImGui::SliderFloat("Bounds Dampening", &bound_dampening, 0.0f, 1.0f);
 	ImGui::SliderInt("Particle Count", &particle_count, 0, 100000);
+	ImGui::SliderFloat3("Particle Scale", value_ptr(particle_scale), 0.0f, 1.0f);
 	ImGui::Text("Water Properties");
 	ImGui::SliderFloat("Smoothing Radius", &smoothing_radius, 0.0f, 100.0f);
 	ImGui::SliderFloat("Mass", &mass, 0.0f, 100.0f);
@@ -147,7 +137,7 @@ void water_sim::calculate_pressure_density(int n){
 		float dist = dot(diff, diff);
 		dist = sqrt(dist);
 		if (smoothing_radius * smoothing_radius > dist){
-			density += mass * smoothing_kernel(dist * 0.004f);
+			density += mass * smoothing_kernel(dist );
 		}
 	});
 	particles[n].density = std::max(density, target_density);

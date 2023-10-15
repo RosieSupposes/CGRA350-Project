@@ -47,6 +47,7 @@ public:
 
     glm::vec3 top_left = glm::vec3(-5.0f, 100.0f, -5.0f);
     glm::vec3 bottom_right = glm::vec3(5.0f, -3.0f, 5.0f); 
+    glm::vec3 spawn_pos = glm::vec3(0.0f, 0.0f, 0.0f);
 
     // Water properties
     float smoothing_radius = 0.85f;
@@ -56,6 +57,7 @@ public:
     float gravity = 3.0f;
     float viscosity = 2.0f;
 
+    glm::vec3 particle_scale = glm::vec3(1.0f, 1.0f, 1.0f);
     int count = 0;
     bool running = false;
     float prev_time = 0.0f;
