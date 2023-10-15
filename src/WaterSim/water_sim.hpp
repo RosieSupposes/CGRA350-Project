@@ -17,7 +17,6 @@ private:
 	std::vector<Particle> particles;
     GLuint water_shader;
     float PI = 3.14159265359f;
-    bool multithread = false;
 
 
 public:
@@ -42,7 +41,7 @@ public:
 	void draw(const glm::mat4 &view, const glm::mat4 &proj, material &material);
 
     bool* enabled;
-    float timestep = 23.7f;
+    float timestep = 2.0f;
     float bound_dampening = 0.22f;
     int particle_count = 380;
 
