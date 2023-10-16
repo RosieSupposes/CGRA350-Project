@@ -68,12 +68,12 @@ void main() {
 	float lDotV = max(0, dot(L,view));
 
 	vec3 spec = vec3(1)*pow(nDotH,16); 
-	vec3 diff = defColour * lamb * texture(uTexture, f_in.textureCoord).xyz;
+	vec3 diff = defColour * lamb*texture(uTexture, f_in.textureCoord).xyz*texture(uEffectTexture, f_in.textureCoord).xyz;
 	vec3 col = amb + (diff + spec)*uLightColour*lightIntensity;
 
 	float lum = (0.299 * col.r + 0.587 * col.g + 0.114 * col.b);
-	vec4 texCol = texture(uEffectTexture, f_in.textureCoord);
-	if(lum >= texCol.r)
+	vec4 texCol = texture(uEffectTexture, gl_FragCoord.xy);
+	if(lum >= 0.5)
 	{
 		colour = lightColour;
 	}
@@ -82,4 +82,5 @@ void main() {
 		colour = shadowColour;
 	}
 	fb_color = vec4(colour,1);
+	//fb_color = texCol;
 }

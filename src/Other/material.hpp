@@ -12,7 +12,7 @@
 class material{
 private:
     
-	GLuint m_texture = 0;
+	
 	GLuint m_effectTexture = 0;
 	bool isEffectShader = false;
 	bool m_isDepthTextureSet = false;
@@ -27,6 +27,7 @@ private:
     
 public:
 	GLuint m_shader = 0;
+	GLuint m_texture = 0;
     material();
 	material(GLuint shader);
 	material(GLuint shader, glm::vec3 color);

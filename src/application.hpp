@@ -20,6 +20,7 @@
 #include "Other/collider.hpp"
 
 
+mesh_builder create_sphere_builder();
 
 // Main application class
 //

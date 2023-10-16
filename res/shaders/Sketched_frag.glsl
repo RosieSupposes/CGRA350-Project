@@ -29,48 +29,64 @@ uniform sampler2D uDepthTexture;
 // framebuffer output
 out vec4 fb_color;
 
-/*
-
-	vec3 a_coords_n = normalize(f_in.worldSpacePos);
-	float lon = atan(a_coords_n.x, a_coords_n.z);
-	float lat = acos(a_coords_n.y);
-	vec2 tmp_coords = vec2(lon,lat) * (1.0 / 3.141592653);
-	vec2 cords = vec2(tmp_coords.x * 0.5 + 0.5, 1 - tmp_coords.y);
-*/
-
 
 void main() {
-	vec3 L = normalize(uLightPosition - f_in.worldSpacePos);
-	float dist = length(uLightPosition - f_in.worldSpacePos);
-	float lightIntensity = uLightPower/(dist*dist);
-	vec3 defColour = uColor * uBrightness;
-	float lamb = max(dot(L, normalize(f_in.normal)), 0);
-	vec3 amb = vec3(0.1);
 
+	vec3 defColour = uBrightness*uColor;
 	// calculate lighting (hack)
- 	vec3 eye = normalize(-f_in.position);
-	vec3 color = amb + defColour*texture(uTexture, f_in.textureCoord).rgb*lamb*uLightColour*lightIntensity;
- 	float lum = 0.299 * color.r + 0.587 * color.g + 0.114 * color.b;
-	vec4 col;
-	//vec3 tmp = (1-texture(uEffectTexture, f_in.textureCoord)-lum).xyz*uC;
-	//fb_color = 1-vec4(tmp,0);
+	vec3 eye = normalize(-f_in.position);
+	float light = abs(dot(normalize(f_in.normal), eye));
+
+	vec3 lightPosition = vec3(0,5,0);
+	float lightPower = 40;
+	vec3 L = normalize(lightPosition - f_in.worldSpacePos);
+	float dist = length(lightPosition - f_in.worldSpacePos);
+	float lightIntensity = lightPower/(dist*dist);
+
+	vec3 normal = normalize(f_in.normal);
+	float lamb = max(dot(L, normal), 0);
+	vec3 colour  = vec3(0);
+
+	vec3 amb = vec3(0.1);
+	
+	
+	vec3 view = normalize(-f_in.position);
+	
+	vec3 H = normalize(L+view);
+
+	float nDotV = max(0, dot(normal,view));
+	float nDotH = max(0, dot(normal,H));
+	float vDotH = max(0, dot(H,view));
+	float lDotV = max(0, dot(L,view));
+
+	vec3 spec = vec3(1)*pow(nDotH,16); 
+	vec3 diff = defColour * lamb * texture(uTexture, f_in.textureCoord).xyz;
+	vec3 col = amb + (diff + spec)*uLightColour*lightIntensity;
+
+	float lum = (0.299 * col.r + 0.587 * col.g + 0.114 * col.b);
+	vec4 texCol = texture(uEffectTexture, gl_FragCoord.xy);
 	float offset;
+	vec2 coords;
+	vec3 colBW = vec3(0);
 	if(lum > 0.75)
 	{
-		offset = 0;
+		coords = vec2((f_in.textureCoord.x)/4,f_in.textureCoord.y);
+		colBW += texture(uEffectTexture, coords).xyz;
 	}
-	else if(lum > 0.5)
+	if(lum > 0.5)
 	{
-		offset = 1;
+		coords = vec2((1+f_in.textureCoord.x)/4,f_in.textureCoord.y);
+		colBW += texture(uEffectTexture, coords).xyz;
 	}
-	else if(lum > 0.25)
+	if(lum > 0.25)
 	{
-		offset = 2;
+		coords = vec2((2+f_in.textureCoord.x)/4,f_in.textureCoord.y);
+		colBW += texture(uEffectTexture, coords).xyz;
 	}
 	else
 	{
-		offset = 3;
+		coords = vec2((3+f_in.textureCoord.x)/4,f_in.textureCoord.y);
+		colBW += texture(uEffectTexture, coords).xyz;
 	}
-	vec2 coords = vec2((offset+f_in.textureCoord.x)/4,f_in.textureCoord.y);
-	fb_color = texture(uEffectTexture, coords);
+	fb_color = vec4(colBW, 1);
 }

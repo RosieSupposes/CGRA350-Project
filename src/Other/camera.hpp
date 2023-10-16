@@ -13,7 +13,7 @@ class camera{
 private:
     glm::mat4 m_view{1};
     glm::mat4 m_proj{1};
-    glm::vec3 m_position{6,-25,-40};
+    
     glm::vec3 m_velocity{0};
     glm::vec3 minBounds{-50,-40,-50};
     glm::vec3 maxBounds{50,-2,50};
@@ -29,7 +29,7 @@ public:
     camera();
     camera(glm::vec3 position);
     void updateProjection(int frameWidth, int frameHeight);
-    void setPosition(glm::vec3 position);
+    glm::vec3 m_position{6,-25,-40};
     void move(glm::vec3 displacement);
     void reduceVelocity();
     void update();
