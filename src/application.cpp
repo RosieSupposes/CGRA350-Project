@@ -29,7 +29,7 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	const auto now = std::chrono::system_clock::now();
 	auto time = now.time_since_epoch();
 	m_seed = time.count() % 1000;
-	std::cout << "seed: " << m_seed << std::endl; 
+	//std::cout << "seed: " << m_seed << std::endl; 
 	readSettings();
 	
 	loadShaders(styles[0]);
@@ -263,7 +263,7 @@ void Application::simulateWater(){
 void Application::renderGUI() {
 	int gap = 5;
 	int mainWindowPos = gap;
-	int mainWindowHeight = 160;
+	int mainWindowHeight = 180;
 	// setup window
 	ImGui::SetNextWindowPos(ImVec2(5, mainWindowPos), ImGuiSetCond_Once);
 	ImGui::SetNextWindowSize(ImVec2(300, mainWindowHeight), ImGuiSetCond_Once);
@@ -297,7 +297,7 @@ void Application::renderGUI() {
 	// finish creating window
 	ImGui::End();
 
-	int fireflyWindowHeight = 100;
+	int fireflyWindowHeight = 200;
 	int fireflyWindowPos = mainWindowPos + mainWindowHeight + gap;
 	fireflies.renderGUI(fireflyWindowHeight, fireflyWindowPos);
 
@@ -309,7 +309,7 @@ void Application::renderGUI() {
 	int treesWindowPos = shaderWindowPos + shaderWindowHeight + gap;
 	trees.renderGUI(m_terrain, treesWindowHeight, treesWindowPos);
 
-	int waterWindowHeight = 230; //can change height here if you add more controls
+	int waterWindowHeight = 435; //can change height here if you add more controls
 	int waterWindowPos = treesWindowPos + treesWindowHeight + gap;
 	m_water.renderGUI(waterWindowHeight, waterWindowPos);
 	//TODO steal the renderWaterGUI function from down below and move it into the forest class, 
@@ -402,15 +402,15 @@ void Application::readSettings(){
 		if (settingsLine.good()) {
 			if (mode == "water_sim_enabled=") {
 				settingsLine >> water_sim_enabled;
-				std::cout << "Set water simulation default to " << (water_sim_enabled ? "On" : "Off") << std::endl;
+				//std::cout << "Set water simulation default to " << (water_sim_enabled ? "On" : "Off") << std::endl;
 			}
 			else if (mode == "framerate_limit=") {
 				settingsLine >> max_frames;
-				std::cout << "Set frame rate limit to " << max_frames << std::endl;
+				//std::cout << "Set frame rate limit to " << max_frames << std::endl;
 			}
 			else if (mode == "tree_recursion_depth=") {
 				settingsLine >> trees.recursion_depth;
-				std::cout << "Set tree recursion depth to " << trees.recursion_depth << std::endl;
+				//std::cout << "Set tree recursion depth to " << trees.recursion_depth << std::endl;
 			}
 			else if (mode == "other_things") {
 				std::string placeHolder;

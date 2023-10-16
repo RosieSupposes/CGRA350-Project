@@ -90,7 +90,7 @@ void water_sim::draw(const mat4 &view, const mat4 &proj, material &material) {
 }
 
 void water_sim::renderGUI(int height, int pos){
-	ImGui::SetNextWindowPos(ImVec2(5.0f, (float)pos), ImGuiSetCond_Once);
+	ImGui::SetNextWindowPos(ImVec2(310.0f, (float)5.0f), ImGuiSetCond_Once);
 	ImGui::SetNextWindowSize(ImVec2(300.0f, (float)height), ImGuiSetCond_Once);
 	ImGui::Begin("Water", 0);
 	ImGui::Text("Water");
