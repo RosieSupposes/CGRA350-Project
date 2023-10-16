@@ -25,39 +25,7 @@ using namespace std;
 using namespace cgra;
 using namespace glm;
 
-
-GLuint screenShader = 0;
-// screen quad VAO
-unsigned int quadVAO, quadVBO;
-float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-        // positions   // texCoords
-        -1.0f,  1.0f,  0.0f, 1.0f,
-        -1.0f, -1.0f,  0.0f, 0.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-
-        -1.0f,  1.0f,  0.0f, 1.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f,  1.0f, 1.0f
-    };
 Application::Application(GLFWwindow *window) : m_window(window) {
-	
-	glGenVertexArrays(1, &quadVAO);
-    glGenBuffers(1, &quadVBO);
-    glBindVertexArray(quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-	
-	shader_builder screen_builder;
-	screen_builder.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//5.1.framebuffers_screen.vs"));
-	screen_builder.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//5.1.framebuffers_screen.fs"));
-    GLuint screenShader = screen_builder.build();
-	glUseProgram(screenShader);
-	glUniform1i(glGetUniformLocation(screenShader, "screenTexture"), 0); 
-
 	const auto now = std::chrono::system_clock::now();
 	auto time = now.time_since_epoch();
 	m_seed = time.count() % 1000;
