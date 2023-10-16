@@ -95,8 +95,25 @@ void Application::loadShaders(const char * type){
 	
 	
 	builder = shader_builder();
-	builder.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//" + style + "_vert.glsl"));
-	builder.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//"+ style + "_frag.glsl"));
+	if(style == "PBR")
+	{
+		builder.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//PBR_vert.glsl"));
+		builder.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//PBR_frag.glsl"));
+	}
+	else if(style == "Sketched")
+	{
+		builder.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//Sketched_vert.glsl"));
+		builder.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//Sketched_frag.glsl"));
+	}
+	else if(style == "Pixel")
+	{
+		builder.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//Pixel_vert.glsl"));
+		builder.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//Pixel_frag.glsl"));
+	}else{
+		builder.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_vert.glsl"));
+		builder.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//color_frag.glsl"));
+	}
+	
 	GLuint shader = builder.build();
 	sketch_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture(true);
 	pixel_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//pixel.jpg")).uploadTexture(true);
