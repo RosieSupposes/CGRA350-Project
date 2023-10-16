@@ -80,13 +80,24 @@ void Application::loadShaders(const char * type){
 
 	string file_head = CGRA_SRCDIR + std::string("//res//shaders//") + style;
 	
+	shader_builder builder;
+	builder.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//FF_vert.glsl"));
+	builder.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//FF_frag.glsl"));
 	m_firefly_material = material(
-			buildVertAndFragShader(CGRA_SRCDIR + std::string("//res//shaders//FF")),
+			builder.build(),
 			vec3(1,1,0));
+	builder = shader_builder();
+	builder.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//Effect_vert.glsl"));
+	builder.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//Effect_frag.glsl"));
 
-	effectMaterial = material(buildVertAndFragShader(CGRA_SRCDIR + std::string("//res//shaders//Effect")));
+	effectMaterial = material(builder.build());
 
-	GLuint shader = buildVertAndFragShader(file_head);
+	
+	
+	builder = shader_builder();
+	builder.set_shader(GL_VERTEX_SHADER, CGRA_SRCDIR + std::string("//res//shaders//" + style + "_vert.glsl"));
+	builder.set_shader(GL_FRAGMENT_SHADER, CGRA_SRCDIR + std::string("//res//shaders//"+ style + "_frag.glsl"));
+	GLuint shader = builder.build();
 	sketch_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture(true);
 	pixel_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//pixel.jpg")).uploadTexture(true);
 	GLuint firefly_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//fireflyPBR.png")).uploadTexture();
