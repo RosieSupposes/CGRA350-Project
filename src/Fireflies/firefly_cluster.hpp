@@ -40,6 +40,7 @@ private:
 	float neighbourhood_size = 12.0f;
 
 	void reset_flies(int fireflyCount);
+	void reset_brightness();
 	float relative_brightness(firefly i, firefly j);
 	float attraction(firefly i, firefly j);
 
@@ -56,8 +57,6 @@ private:
 	glm::vec3 towards_brightest(firefly f);
 	glm::vec3 away_from_each_other(firefly f);
 	glm::vec3 within_bounds(firefly f);
-	glm::vec3 fly_to_centre(firefly f);
-	glm::vec3 match_velocity(firefly f);
 	void limit_velocity(firefly& f);
 	void get_closest_fireflies(firefly& f);
 

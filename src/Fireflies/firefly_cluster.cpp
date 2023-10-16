@@ -16,7 +16,6 @@ firefly_cluster::firefly_cluster(int count) {
 	max_bounds = vec3(10, 10, 20);
 	reload(count);
 
-	//gen = mt19937(rd()); // seed the generator
 	float range = 2.5f;
 	random_small_vector = uniform_real_distribution<>(-range, range); // define the range
 }
@@ -28,12 +27,6 @@ void firefly_cluster::reload(int count) {
 void firefly_cluster::reset_flies(int fireflyCount) {
 	fireflies.clear();
 	for (int f = 0; f < fireflyCount; f++) {
-		float range = 38;
-		//vec3 randomPosition = vec3(
-		//	-(range / 2) + range * ((float)std::rand()) / RAND_MAX,//range between -10 to 10
-		//	10 + 10 * ((float)std::rand()) / RAND_MAX, //range between 10 to 20
-		//	-(range / 2) + range * ((float)std::rand()) / RAND_MAX //range between -10 to 10
-		//);
 		vec3 randomPosition = vec3(
 			get_random_num(min_bounds.x, max_bounds.x),
 			get_random_num(min_bounds.y, max_bounds.y),
@@ -47,6 +40,14 @@ void firefly_cluster::reset_flies(int fireflyCount) {
 		firefly fly = firefly(randomPosition, brightness_step, search_precison);
 		fly.brightness = get_brightness(brightness_step);
 		fireflies.push_back(fly);
+	}
+}
+
+void firefly_cluster::reset_brightness() {
+	for (firefly& f : fireflies) {
+		int brightness_step = rand() % (max_brightness_step + 1);
+		f.brightness_step = brightness_step;
+		f.brightness = get_brightness(brightness_step);
 	}
 }
 
@@ -165,16 +166,6 @@ vec3 firefly_cluster::within_bounds(firefly f) {
 	return v;
 }
 
-vec3 firefly_cluster::fly_to_centre(firefly f) {
-	//TODO
-	return glm::vec3();
-}
-
-vec3 firefly_cluster::match_velocity(firefly f) {
-	//TODO
-	return glm::vec3();
-}
-
 void firefly_cluster::limit_velocity(firefly& f) {
 	if (length(f.velocity) > speed_limit) {
 		f.velocity = normalize(f.velocity) * speed_limit;
@@ -191,10 +182,7 @@ void firefly_cluster::simulate() {
 		//cout << f.neighbours.size() << endl;
 	}
 
-	//cout << fireflies[0].pos.x << "," << fireflies[0].pos.y << "," << fireflies[0].pos.z << endl;
 	//update position
-	//
-
 	for (firefly& f : fireflies) {
 		//cout << f.brightness << endl;
 
@@ -253,7 +241,10 @@ void firefly_cluster::renderGUI(int height, int pos) {
 		this->reload(fireflyCount);
 	}
 
-	ImGui::InputInt("Flash Speed", &max_brightness_step);
+	if (ImGui::InputInt("Flash Speed", &max_brightness_step)) {
+		reset_brightness();
+	}
+
 	ImGui::InputFloat("Neighbourhood Size", &neighbourhood_size);
 	ImGui::InputFloat("Firefly Speed", &speed_limit);
 

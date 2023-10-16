@@ -43,7 +43,7 @@ void printShaderInfoLog(GLuint obj) {
 	if (infologLength > 1) {
 		std::vector<char> infoLog(infologLength);
 		glGetShaderInfoLog(obj, infologLength, &charsWritten, &infoLog[0]);
-		std::cout << "CGRA Shader : " << "SHADER :\n" << &infoLog[0] << std::endl;
+		//std::cout << "CGRA Shader : " << "SHADER :\n" << &infoLog[0] << std::endl;
 	}
 }
 
@@ -55,7 +55,7 @@ void printProgramInfoLog(GLuint obj) {
 	if (infologLength > 1) {
 		std::vector<char> infoLog(infologLength);
 		glGetProgramInfoLog(obj, infologLength, &charsWritten, &infoLog[0]);
-		std::cout << "CGRA Shader : " << "PROGRAM :\n" << &infoLog[0] << std::endl;
+		//std::cout << "CGRA Shader : " << "PROGRAM :\n" << &infoLog[0] << std::endl;
 	}
 }
 
