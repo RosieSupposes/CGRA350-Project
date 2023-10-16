@@ -54,11 +54,13 @@ private:
 	//Style
 	vec3 skyColour{0.3,0.3,0.4};
 	const char* styles[3] = { "PBR", "Sketched", "Pixel"};
+	int m_selected_style = 0;
 	GLuint pixel_texture;
 	GLuint sketch_texture;
 	material effectMaterial;
 	basic_model effectSphere;
 	GLuint framebuffer;
+	GLuint rbo;
 	GLuint textureColorbuffer;
 
 	// geometry

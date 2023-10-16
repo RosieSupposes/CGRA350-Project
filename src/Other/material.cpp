@@ -37,6 +37,11 @@ void material::setNewShader(GLuint shader)
     m_shader = shader;
 }
 
+void material::changeTexture(GLuint uTexture)
+{
+    m_texture = uTexture;
+}
+
 void material::changeEffectTexture(GLuint effectTexture)
 {
     m_effectTexture = effectTexture;

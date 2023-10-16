@@ -33,6 +33,7 @@ public:
 	material(GLuint shader, GLuint texture, GLuint effectTexture, glm::vec3 color, float metallic, float roughness);
 	void setNewShader(GLuint shader);
 	void setDepthTexture(GLuint &depthTexture);
+	void changeTexture(GLuint uTexture);
 	void changeEffectTexture(GLuint effectTexture);
 	void update(float metallic, float roughness);
 	void updateLight(glm::vec3 &lightPosition, float value);

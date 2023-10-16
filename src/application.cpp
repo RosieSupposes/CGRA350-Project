@@ -42,11 +42,9 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	glfwGetFramebufferSize(m_window, &width, &height); 
 	// framebuffer configuration - From learn openGL
     // -------------------------
-    GLuint framebuffer;
     glGenFramebuffers(1, &framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     // create a color attachment texture
-    GLuint textureColorbuffer;
     glGenTextures(1, &textureColorbuffer);
     glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -54,7 +52,6 @@ Application::Application(GLFWwindow *window) : m_window(window) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
     // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-    GLuint rbo;
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height); // use a single renderbuffer object for both a depth AND stencil buffer.
@@ -88,7 +85,7 @@ void Application::loadShaders(const char * type){
 			buildVertAndFragShader(CGRA_SRCDIR + std::string("//res//shaders//FF")),
 			vec3(1,1,0));
 
-	effectMaterial = material(buildVertAndFragShader(CGRA_SRCDIR + std::string("//res//shaders//Effect"));
+	effectMaterial = material(buildVertAndFragShader(CGRA_SRCDIR + std::string("//res//shaders//Effect")));
 
 	GLuint shader = buildVertAndFragShader(file_head);
 	sketch_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
@@ -169,8 +166,20 @@ void Application::ApplyEffect()
 	// make sure we clear the framebuffer's content
     glClearColor(skyColour.x, skyColour.y, skyColour.z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	if(m_selected_style == 1){
+		effectMaterial.changeTexture(sketch_texture);
+	}
+	else if(m_selected_style == 2){
+		effectMaterial.changeTexture(pixel_texture);
+	}
 	effectSphere.draw(m_camera.getView(), m_camera.getProjection(), effectMaterial);
-
+	//Update materials
+	//m_firefly_material.changeEffectTexture(textureColorbuffer);
+	m_trunk_material.changeEffectTexture(textureColorbuffer);
+	m_leaf_material.changeEffectTexture(textureColorbuffer);
+	m_terrain_material.changeEffectTexture(textureColorbuffer);
+	m_basic_water_material.changeEffectTexture(textureColorbuffer);
+	m_water_sim_material.changeEffectTexture(textureColorbuffer);
 }
 
 void Application::WrapUpFrame(double start_time){
@@ -299,9 +308,8 @@ void Application::renderShaderGUI(int height, int pos) {
 	ImGui::Begin("Style", 0);
 
 	ImGui::Text("Style");
-	static int selected_style = 0; // If the selection isn't within 0..count, Combo won't display a preview
-	if (ImGui::Combo("Style", &selected_style, styles, sizeof(styles) / sizeof(*styles))) {
-		loadShaders(styles[selected_style]);
+	if (ImGui::Combo("Style", &m_selected_style, styles, sizeof(styles) / sizeof(*styles))) {
+		loadShaders(styles[m_selected_style]);
 	}
 
 	ImGui::End();

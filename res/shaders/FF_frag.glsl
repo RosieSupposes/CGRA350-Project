@@ -24,7 +24,7 @@ void main() {
 	// calculate lighting (hack)
 	//vec3 eye = normalize(-f_in.position);
 	//float light = abs(dot(normalize(f_in.normal), eye));
-	//vec3 color = mix(uColor / 4, uColor*uBrightness, light);
+	//bvec3 color = mix(uColor / 4, uColor*uBrightness, light);
 	// output to the frambuffer
 	fb_color = vec4(uColor*uBrightness, 1);
 }
