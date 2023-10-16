@@ -1,9 +1,9 @@
 # object Terrain01
 g Simple_water01
-v -20 0 -20
-v -20 0 20
-v 20 0 -20
-v 20 0 20
+v -10 0 -10
+v -10 0 10
+v 10 0 -10
+v 10 0 10
 vt 0 0
 vt 0 1
 vt 1 0

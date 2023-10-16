@@ -25,7 +25,6 @@ using namespace std;
 using namespace cgra;
 using namespace glm;
 
-
 Application::Application(GLFWwindow *window) : m_window(window) {
 	const auto now = std::chrono::system_clock::now();
 	auto time = now.time_since_epoch();
@@ -36,6 +35,30 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	loadShaders(styles[0]);
 	
 	load_scene_objects();
+
+	effectSphere = basic_model(create_sphere_builder(), scale(mat4(1), vec3(50)));
+	int width, height;
+	glfwGetFramebufferSize(m_window, &width, &height); 
+	// // framebuffer configuration - cannot get to work
+    // // -------------------------
+    // glGenFramebuffers(1, &framebuffer);
+    // glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    // // create a color attachment texture
+    // glGenTextures(1, &textureColorbuffer);
+    // glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+    // // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+    // glGenRenderbuffers(1, &rbo);
+    // glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    // glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height); // use a single renderbuffer object for both a depth AND stencil buffer.
+    // glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
+    // // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+    // if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    //     cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	m_camera = camera();
 	m_controller = keyboard_controller();
@@ -57,61 +80,27 @@ void Application::loadShaders(const char * type){
 
 	string file_head = CGRA_SRCDIR + std::string("//res//shaders//") + style;
 	
+	m_firefly_material = material(
+			buildVertAndFragShader(CGRA_SRCDIR + std::string("//res//shaders//FF")),
+			vec3(1,1,0));
+
+	effectMaterial = material(buildVertAndFragShader(CGRA_SRCDIR + std::string("//res//shaders//Effect")));
+
 	GLuint shader = buildVertAndFragShader(file_head);
-	if(style == "PBR")
-	{
-		//Load textures for each material
-			//fireflies(???)
-			//treetrunk
-			//leaves
-			//terrain
-			//water
-			//advanced water
-		GLuint firefly_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//fireflyPBR.png")).uploadTexture();
-		GLuint trunk_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//trunkPBR.png")).uploadTexture();
-		GLuint leaf_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//leafPBR.png")).uploadTexture();
-		GLuint terrain_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//terrainPBR.png")).uploadTexture();
-		GLuint basic_water_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//waterPBR.png")).uploadTexture();
-		GLuint water_sim_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//waterSimPBR.png")).uploadTexture();
-		m_firefly_material = material(shader, firefly_texture, vec3(1,1,0));
-		m_trunk_material = material(shader, trunk_texture, vec3(0.4196, 0.2863, 0.1686));
-		m_leaf_material = material(shader, leaf_texture, vec3(0.2,0.8,0.4));
-		m_terrain_material = material(shader, terrain_texture, vec3(0.251, 0.161, 0.020));
-		m_basic_water_material = material(shader, basic_water_texture, vec3(0,0.2,0.8));
-		m_water_sim_material = material(shader, water_sim_texture, vec3(0,0.2,0.8));
-	}
-	else if(style == "Sketched")
-	{
-		//Load texture for sketched shader
-		GLuint stroke_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
-		m_firefly_material = material(shader, stroke_texture, vec3(1,1,0));
-		m_trunk_material = material(shader, stroke_texture, vec3(0.4196, 0.2863, 0.1686));
-		m_leaf_material = material(shader, stroke_texture, vec3(0.2,0.8,0.4));
-		m_terrain_material = material(shader, stroke_texture, vec3(0.251, 0.161, 0.020));
-		m_basic_water_material = material(shader, stroke_texture, vec3(0,0.2,0.8));
-		m_water_sim_material = material(shader, stroke_texture, vec3(0,0.2,0.8));
-	}
-	else if(style == "Pixel")
-	{
-		//Load texture for pixel shader
-		GLuint pixel_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
-		m_firefly_material = material(shader, pixel_texture, vec3(1,1,0));
-		m_trunk_material = material(shader, pixel_texture, vec3(0.4196, 0.2863, 0.1686));
-		m_leaf_material = material(shader, pixel_texture, vec3(0.2,0.8,0.4));
-		m_terrain_material = material(shader, pixel_texture, vec3(0.251, 0.161, 0.020));
-		m_basic_water_material = material(shader, pixel_texture, vec3(0,0.2,0.8));
-		m_water_sim_material = material(shader, pixel_texture, vec3(0,0.2,0.8));
-	}
-	else
-	{
-		shader = buildVertAndFragShader(CGRA_SRCDIR + std::string("//res//shaders//color"));
-		m_firefly_material = material(shader);
-		m_trunk_material = material(shader);
-		m_leaf_material = material(shader);
-		m_terrain_material = material(shader);
-		m_basic_water_material = material(shader);
-		m_water_sim_material = material(shader);
-	}
+	sketch_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture(true);
+	pixel_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//pixel.jpg")).uploadTexture(true);
+	GLuint firefly_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//fireflyPBR.png")).uploadTexture();
+	GLuint trunk_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//trunkPBR.jpg")).uploadTexture();
+	GLuint leaf_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//leafPBR.png")).uploadTexture();
+	GLuint terrain_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//terrainPBR.jpg")).uploadTexture();
+	GLuint basic_water_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//water.jpg")).uploadTexture();
+	GLuint water_sim_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//water.jpg")).uploadTexture();
+	//m_firefly_material = material(shader, firefly_texture, vec3(1,1,0));
+	m_trunk_material = material(shader, trunk_texture, sketch_texture, vec3(0.4196, 0.2863, 0.1686), 0.5, 0.8);
+	m_leaf_material = material(shader, leaf_texture, sketch_texture, vec3(0.2,0.8,0.4),0,0);
+	m_terrain_material = material(shader, terrain_texture, sketch_texture, terrain_colour, 0.3, 0.8);
+	m_basic_water_material = material(shader, basic_water_texture, sketch_texture, water_colour, 0.255, 0);
+	m_water_sim_material = material(shader, water_sim_texture, sketch_texture, water_colour, 0.255, 0);
 }
 
 GLuint Application::buildVertAndFragShader(string file_head){
@@ -120,7 +109,6 @@ GLuint Application::buildVertAndFragShader(string file_head){
 	builder.set_shader(GL_FRAGMENT_SHADER, file_head + std::string("_frag.glsl"));
 	return builder.build();
 }
-
 
 void Application::render() {
 	double start_time = glfwGetTime();
@@ -138,7 +126,7 @@ void Application::render() {
 	m_camera.updateProjection(width, height);
 	m_camera.update();
 	// clear the back-buffer
-	glClearColor(0.3f, 0.3f, 0.4f, 1.0f);
+	glClearColor(skyColour.x, skyColour.y, skyColour.z, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
 	// enable flags for normal/forward rendering
@@ -157,12 +145,55 @@ void Application::render() {
 	//Simulate things
 	simulate();
 
+	//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	ApplyEffect();
+	
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
 	// draw things
 	renderTerrain(view, proj);
 	renderFireflies(view, proj);
 	renderWater(view, proj);
 	renderTrees(view, proj);
 	WrapUpFrame(start_time);
+}
+
+void Application::ApplyEffect()
+{
+	// // make sure we clear the framebuffer's content
+    // glClearColor(skyColour.x, skyColour.y, skyColour.z, 1.0f);
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// if(m_selected_style == 1){
+	// 	effectMaterial.m_texture = sketch_texture;
+	// }
+	// else if(m_selected_style == 2){
+	// 	effectMaterial.m_texture = pixel_texture;
+	// }
+	// effectSphere.m_modelTransform = scale(mat4(1), vec3(120));
+	// effectSphere.draw(m_camera.getView(), m_camera.getProjection(), effectMaterial);
+	// //Update materials
+	// //m_firefly_material.changeEffectTexture(textureColorbuffer);
+	// m_trunk_material.changeEffectTexture(textureColorbuffer);
+	// m_leaf_material.changeEffectTexture(textureColorbuffer);
+	// m_terrain_material.changeEffectTexture(textureColorbuffer);
+	// m_basic_water_material.changeEffectTexture(textureColorbuffer);
+	// m_water_sim_material.changeEffectTexture(textureColorbuffer);
+	if(m_selected_style == 1){
+		m_trunk_material.changeEffectTexture(sketch_texture);
+		m_leaf_material.changeEffectTexture(sketch_texture);
+		m_terrain_material.changeEffectTexture(sketch_texture);
+		m_basic_water_material.changeEffectTexture(sketch_texture);
+		m_water_sim_material.changeEffectTexture(sketch_texture);
+	}else if(m_selected_style == 2){
+		m_trunk_material.changeEffectTexture(pixel_texture);
+		m_leaf_material.changeEffectTexture(pixel_texture);
+		m_terrain_material.changeEffectTexture(pixel_texture);
+		m_basic_water_material.changeEffectTexture(pixel_texture);
+		m_water_sim_material.changeEffectTexture(pixel_texture);
+	}
+	
 }
 
 void Application::WrapUpFrame(double start_time){
@@ -291,9 +322,8 @@ void Application::renderShaderGUI(int height, int pos) {
 	ImGui::Begin("Style", 0);
 
 	ImGui::Text("Style");
-	static int selected_style = 0; // If the selection isn't within 0..count, Combo won't display a preview
-	if (ImGui::Combo("Style", &selected_style, styles, sizeof(styles) / sizeof(*styles))) {
-		loadShaders(styles[selected_style]);
+	if (ImGui::Combo("Style", &m_selected_style, styles, sizeof(styles) / sizeof(*styles))) {
+		loadShaders(styles[m_selected_style]);
 	}
 
 	ImGui::End();
@@ -388,4 +418,95 @@ void Application::readSettings(){
 			}
 		}
 	}
+}
+
+mesh_builder create_sphere_builder()
+{
+	mesh_builder mb;
+	int azimuth_divisions = 40;
+	int elevation_divisions = 40;
+	
+	vec2 placeholder = vec2(0,0);//Replace later
+	
+	std::vector<vec4> points;
+	float elevation_step = radians(180.0f)/elevation_divisions;
+	for(int i = 1; i < elevation_divisions; i++){
+		vec4 point = vec4(sin(i*elevation_step),0,cos(i*elevation_step), 1);
+		points.push_back(point);
+	}
+	std::vector<mat4> rotations;
+	float azimuth_step = radians(360.0f)/azimuth_divisions;
+	for(int j = 0; j < azimuth_divisions; j++){
+		rotations.push_back(rotate(mat4{1.0}, j*azimuth_step, vec3(0,0,1)));
+	}
+	//count = 0;
+	float xCount = 0;
+	for(mat4 rot : rotations){
+		float x_u = xCount/azimuth_divisions;
+		float yCount = 1;
+		for(vec4 point : points){
+			float y_v = yCount/elevation_divisions;
+			vec4 rP = point*rot;
+			vec3 pt = vec3(rP.x, rP.y, rP.z);
+			vec3 norm = vec3(pt.x, pt.y, pt.z);
+			mb.push_vertex(mesh_vertex{pt, pt, vec2(x_u, y_v)});
+			yCount += 1;
+		}
+		xCount += 1;
+	}
+	mb.push_vertex(mesh_vertex{vec3(0,0,1), vec3(0,0,1), vec2(0.5,0)});
+	mb.push_vertex(mesh_vertex{vec3(0,0,-1), vec3(0,0,-1), vec2(0.5,1)});
+	int elevation_offset = elevation_divisions - 1;
+	for(int i = 0; i < azimuth_divisions-1; i++){
+		for(int j = 1; j < elevation_divisions-1; j++){
+			int a = i*elevation_offset + j - 1;
+			int b = a + 1;
+			int c = a + elevation_offset;
+			int d = c + 1;
+			mb.push_index(a);
+			mb.push_index(b);
+			mb.push_index(c);
+			mb.push_index(c);
+			mb.push_index(b);
+			mb.push_index(d);
+		}
+	}
+	//final side wrap around
+	for(int j = 1; j < elevation_divisions-1; j++){
+		int a = (azimuth_divisions-1)*elevation_offset + j - 1;
+		int b = a + 1;
+		int c = j - 1;
+		int d = c + 1;
+		mb.push_index(a);
+		mb.push_index(b);
+		mb.push_index(c);
+		mb.push_index(c);
+		mb.push_index(b);
+		mb.push_index(d);
+	}
+	//join ends
+	//end 1
+	for(int i = 0; i < azimuth_divisions-1; i++){
+		int a = i*elevation_offset;
+		int b = azimuth_divisions*(elevation_divisions-1);
+		int c = a + elevation_offset;
+		mb.push_index(a);
+		mb.push_index(b);
+		mb.push_index(c);
+	}
+	mb.push_index((azimuth_divisions-1)*elevation_offset);
+	mb.push_index(azimuth_divisions*(elevation_divisions-1));
+	mb.push_index(0);
+	for(int i = 1; i < azimuth_divisions; i++){
+		int a = i*elevation_offset-1;
+		int b = azimuth_divisions*(elevation_divisions-1)+1;
+		int c = a + elevation_offset;
+		mb.push_index(a);
+		mb.push_index(b);
+		mb.push_index(c);
+	}
+	mb.push_index(azimuth_divisions*(elevation_divisions-1)-1);
+	mb.push_index(azimuth_divisions*(elevation_divisions-1)+1);
+	mb.push_index(elevation_offset-1);
+	return mb;
 }
