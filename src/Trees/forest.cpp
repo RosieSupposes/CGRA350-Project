@@ -51,8 +51,8 @@ void forest::reset_trees(terrain terrain, int treeCount, int recursion_depth, st
 		ray.point = vec3(x,ray.length+1,z);		
 		Collision col = terrain.checkCollision(ray);
 		if(col.hit){
-			std::cout << "Placed tree " << t << " at point: (" << col.point.x << ", " << col.point.y 
-			<< ", " << col.point.z << ")" << std::endl;
+			//std::cout << "Placed tree " << t << " at point: (" << col.point.x << ", " << col.point.y 
+			//<< ", " << col.point.z << ")" << std::endl;
 			trees.push_back(tree(translate(mat4(1), col.point+vec3(0,-1,0)), recursion_depth, style));
 		}
 		else

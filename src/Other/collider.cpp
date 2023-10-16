@@ -109,14 +109,14 @@ Collision collider::checkCollision(Ray ray)
         float check3 = dot(cross(aMinusC, qMinusC), n);
 
         if(check1 >= 0 && check2 >= 0 && check3 >= 0){
-            std::cout << "Collision!" << std::endl;
+            //std::cout << "Collision!" << std::endl;
             //collided, return valid collision
             
-            std::cout << "Triangle " << i/3 + 1 << ":" << std::endl;
-            std::cout << "Vertex " << i << ", point: (" << a.x << ", " << a.y << ", " << a.z << ")" << std::endl;
-            std::cout << "Vertex " << i+1 << ", point: (" << b.x << ", " << b.y << ", " << b.z << ")" << std::endl;
-            std::cout << "Vertex " << i+2 << ", point: (" << c.x << ", " << c.y << ", " << c.z << ")" << std::endl;
-            std::cout << "Normal is (" << n.x << ", " << n.y << ", " << n.z << ")" << std::endl;
+            //std::cout << "Triangle " << i/3 + 1 << ":" << std::endl;
+            ////std::cout << "Vertex " << i << ", point: (" << a.x << ", " << a.y << ", " << a.z << ")" << std::endl;
+            //std::cout << "Vertex " << i+1 << ", point: (" << b.x << ", " << b.y << ", " << b.z << ")" << std::endl;
+            //std::cout << "Vertex " << i+2 << ", point: (" << c.x << ", " << c.y << ", " << c.z << ")" << std::endl;
+            //std::cout << "Normal is (" << n.x << ", " << n.y << ", " << n.z << ")" << std::endl;
             col.hit = true;
             col.point = q;
             col.normal = n;
