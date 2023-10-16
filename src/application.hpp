@@ -68,6 +68,7 @@ private:
 		//terrain
 	material m_terrain_material;
 	terrain m_terrain;
+	vec3 terrain_colour{0.01,0.8,0.05};
 	
 		//water - basic
 	bool water_sim_enabled = false;

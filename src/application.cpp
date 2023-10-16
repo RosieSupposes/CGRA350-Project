@@ -57,6 +57,11 @@ void Application::loadShaders(const char * type){
 
 	string file_head = CGRA_SRCDIR + std::string("//res//shaders//") + style;
 	
+	m_firefly_material = material(
+			buildVertAndFragShader(CGRA_SRCDIR + std::string("//res//shaders//FF")),
+			rgba_image(CGRA_SRCDIR + std::string("//res//textures//fireflyPBR.png")).uploadTexture(), 
+			vec3(1,1,0));
+
 	GLuint shader = buildVertAndFragShader(file_head);
 	if(style == "PBR")
 	{
@@ -73,10 +78,11 @@ void Application::loadShaders(const char * type){
 		GLuint terrain_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//terrainPBR.png")).uploadTexture();
 		GLuint basic_water_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//waterPBR.png")).uploadTexture();
 		GLuint water_sim_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//waterSimPBR.png")).uploadTexture();
-		m_firefly_material = material(shader, firefly_texture, vec3(1,1,0));
+		
+		//m_firefly_material = material(shader, firefly_texture, vec3(1,1,0));
 		m_trunk_material = material(shader, trunk_texture, vec3(0.4196, 0.2863, 0.1686));
 		m_leaf_material = material(shader, leaf_texture, vec3(0.2,0.8,0.4));
-		m_terrain_material = material(shader, terrain_texture, vec3(0.251, 0.161, 0.020));
+		m_terrain_material = material(shader, terrain_texture, terrain_colour);
 		m_basic_water_material = material(shader, basic_water_texture, vec3(0,0.2,0.8));
 		m_water_sim_material = material(shader, water_sim_texture, vec3(0,0.2,0.8));
 	}
@@ -84,10 +90,10 @@ void Application::loadShaders(const char * type){
 	{
 		//Load texture for sketched shader
 		GLuint stroke_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
-		m_firefly_material = material(shader, stroke_texture, vec3(1,1,0));
+		//m_firefly_material = material(shader, stroke_texture, vec3(1,1,0));
 		m_trunk_material = material(shader, stroke_texture, vec3(0.4196, 0.2863, 0.1686));
 		m_leaf_material = material(shader, stroke_texture, vec3(0.2,0.8,0.4));
-		m_terrain_material = material(shader, stroke_texture, vec3(0.251, 0.161, 0.020));
+		m_terrain_material = material(shader, stroke_texture, terrain_colour);
 		m_basic_water_material = material(shader, stroke_texture, vec3(0,0.2,0.8));
 		m_water_sim_material = material(shader, stroke_texture, vec3(0,0.2,0.8));
 	}
@@ -95,17 +101,17 @@ void Application::loadShaders(const char * type){
 	{
 		//Load texture for pixel shader
 		GLuint pixel_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
-		m_firefly_material = material(shader, pixel_texture, vec3(1,1,0));
+		//m_firefly_material = material(shader, pixel_texture, vec3(1,1,0));
 		m_trunk_material = material(shader, pixel_texture, vec3(0.4196, 0.2863, 0.1686));
 		m_leaf_material = material(shader, pixel_texture, vec3(0.2,0.8,0.4));
-		m_terrain_material = material(shader, pixel_texture, vec3(0.251, 0.161, 0.020));
+		m_terrain_material = material(shader, pixel_texture, terrain_colour);
 		m_basic_water_material = material(shader, pixel_texture, vec3(0,0.2,0.8));
 		m_water_sim_material = material(shader, pixel_texture, vec3(0,0.2,0.8));
 	}
 	else
 	{
 		shader = buildVertAndFragShader(CGRA_SRCDIR + std::string("//res//shaders//color"));
-		m_firefly_material = material(shader);
+		//m_firefly_material = material(shader);
 		m_trunk_material = material(shader);
 		m_leaf_material = material(shader);
 		m_terrain_material = material(shader);
