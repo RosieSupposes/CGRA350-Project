@@ -32,7 +32,7 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	//std::cout << "seed: " << m_seed << std::endl; 
 	readSettings();
 	
-	loadShaders(styles[0]);
+	loadShaders(styles[1]);
 	
 	load_scene_objects();
 
