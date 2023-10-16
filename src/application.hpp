@@ -52,7 +52,14 @@ private:
 	keyboard_controller m_controller;
 
 	//Style
+	vec3 skyColour{0.3,0.3,0.4};
 	const char* styles[3] = { "PBR", "Sketched", "Pixel"};
+	GLuint pixel_texture;
+	GLuint sketch_texture;
+	material effectMaterial;
+	basic_model effectSphere;
+	GLuint framebuffer;
+	GLuint textureColorbuffer;
 
 	// geometry
 		//trees
@@ -68,9 +75,10 @@ private:
 		//terrain
 	material m_terrain_material;
 	terrain m_terrain;
-	vec3 terrain_colour{0.01,0.8,0.05};
+	vec3 terrain_colour{0.2,0.7,0.2};
 	
 		//water - basic
+	vec3 water_colour{0.0, 0.6, 0.8};
 	bool water_sim_enabled = false;
 	material m_basic_water_material;
 	basic_model basic_water;
@@ -104,6 +112,8 @@ private:
 	void readSettings();
 	void loadShaders(const char* type);
 	void load_scene_objects();
+
+	void ApplyEffect();
 
 public:
 	// setup

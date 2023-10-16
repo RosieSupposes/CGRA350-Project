@@ -36,6 +36,33 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 	loadShaders(styles[0]);
 	
 	load_scene_objects();
+
+	effectSphere = basic_model(CGRA_SRCDIR + std::string("//res//assets//land.obj"), scale(mat4(1), vec3(50)));
+	int width, height;
+	glfwGetFramebufferSize(m_window, &width, &height); 
+	// framebuffer configuration - From learn openGL
+    // -------------------------
+    GLuint framebuffer;
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    // create a color attachment texture
+    GLuint textureColorbuffer;
+    glGenTextures(1, &textureColorbuffer);
+    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+    // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+    GLuint rbo;
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height); // use a single renderbuffer object for both a depth AND stencil buffer.
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
+    // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	m_camera = camera();
 	m_controller = keyboard_controller();
@@ -59,65 +86,25 @@ void Application::loadShaders(const char * type){
 	
 	m_firefly_material = material(
 			buildVertAndFragShader(CGRA_SRCDIR + std::string("//res//shaders//FF")),
-			rgba_image(CGRA_SRCDIR + std::string("//res//textures//fireflyPBR.png")).uploadTexture(), 
 			vec3(1,1,0));
 
+	effectMaterial = material(buildVertAndFragShader(CGRA_SRCDIR + std::string("//res//shaders//Effect"));
+
 	GLuint shader = buildVertAndFragShader(file_head);
-	if(style == "PBR")
-	{
-		//Load textures for each material
-			//fireflies(???)
-			//treetrunk
-			//leaves
-			//terrain
-			//water
-			//advanced water
-		GLuint firefly_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//fireflyPBR.png")).uploadTexture();
-		GLuint trunk_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//trunkPBR.png")).uploadTexture();
-		GLuint leaf_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//leafPBR.png")).uploadTexture();
-		GLuint terrain_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//terrainPBR.png")).uploadTexture();
-		GLuint basic_water_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//waterPBR.png")).uploadTexture();
-		GLuint water_sim_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//waterSimPBR.png")).uploadTexture();
-		
-		//m_firefly_material = material(shader, firefly_texture, vec3(1,1,0));
-		m_trunk_material = material(shader, trunk_texture, vec3(0.4196, 0.2863, 0.1686));
-		m_leaf_material = material(shader, leaf_texture, vec3(0.2,0.8,0.4));
-		m_terrain_material = material(shader, terrain_texture, terrain_colour);
-		m_basic_water_material = material(shader, basic_water_texture, vec3(0,0.2,0.8));
-		m_water_sim_material = material(shader, water_sim_texture, vec3(0,0.2,0.8));
-	}
-	else if(style == "Sketched")
-	{
-		//Load texture for sketched shader
-		GLuint stroke_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
-		//m_firefly_material = material(shader, stroke_texture, vec3(1,1,0));
-		m_trunk_material = material(shader, stroke_texture, vec3(0.4196, 0.2863, 0.1686));
-		m_leaf_material = material(shader, stroke_texture, vec3(0.2,0.8,0.4));
-		m_terrain_material = material(shader, stroke_texture, terrain_colour);
-		m_basic_water_material = material(shader, stroke_texture, vec3(0,0.2,0.8));
-		m_water_sim_material = material(shader, stroke_texture, vec3(0,0.2,0.8));
-	}
-	else if(style == "Pixel")
-	{
-		//Load texture for pixel shader
-		GLuint pixel_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
-		//m_firefly_material = material(shader, pixel_texture, vec3(1,1,0));
-		m_trunk_material = material(shader, pixel_texture, vec3(0.4196, 0.2863, 0.1686));
-		m_leaf_material = material(shader, pixel_texture, vec3(0.2,0.8,0.4));
-		m_terrain_material = material(shader, pixel_texture, terrain_colour);
-		m_basic_water_material = material(shader, pixel_texture, vec3(0,0.2,0.8));
-		m_water_sim_material = material(shader, pixel_texture, vec3(0,0.2,0.8));
-	}
-	else
-	{
-		shader = buildVertAndFragShader(CGRA_SRCDIR + std::string("//res//shaders//color"));
-		//m_firefly_material = material(shader);
-		m_trunk_material = material(shader);
-		m_leaf_material = material(shader);
-		m_terrain_material = material(shader);
-		m_basic_water_material = material(shader);
-		m_water_sim_material = material(shader);
-	}
+	sketch_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
+	pixel_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//strokeMap.png")).uploadTexture();
+	GLuint firefly_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//fireflyPBR.png")).uploadTexture();
+	GLuint trunk_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//trunkPBR.png")).uploadTexture();
+	GLuint leaf_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//leafPBR.png")).uploadTexture();
+	GLuint terrain_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//terrainPBR.png")).uploadTexture();
+	GLuint basic_water_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//waterPBR.png")).uploadTexture();
+	GLuint water_sim_texture = rgba_image(CGRA_SRCDIR + std::string("//res//textures//waterSimPBR.png")).uploadTexture();
+	//m_firefly_material = material(shader, firefly_texture, vec3(1,1,0));
+	m_trunk_material = material(shader, sketch_texture, trunk_texture, vec3(0.4196, 0.2863, 0.1686), 0.5, 0.8);
+	m_leaf_material = material(shader, sketch_texture, leaf_texture, vec3(0.2,0.8,0.4),0,0);
+	m_terrain_material = material(shader, sketch_texture, terrain_texture, terrain_colour, 0.3, 0.8);
+	m_basic_water_material = material(shader, sketch_texture, basic_water_texture, water_colour, 0.255, 0);
+	m_water_sim_material = material(shader, sketch_texture, water_sim_texture, water_colour, 0.255, 0);
 }
 
 GLuint Application::buildVertAndFragShader(string file_head){
@@ -144,7 +131,7 @@ void Application::render() {
 	m_camera.updateProjection(width, height);
 	m_camera.update();
 	// clear the back-buffer
-	glClearColor(0.3f, 0.3f, 0.4f, 1.0f);
+	glClearColor(skyColour.x, skyColour.y, skyColour.z, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
 	// enable flags for normal/forward rendering
@@ -163,12 +150,27 @@ void Application::render() {
 	//Simulate things
 	simulate();
 
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	ApplyEffect();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	// draw things
 	renderTerrain(view, proj);
 	renderFireflies(view, proj);
 	renderWater(view, proj);
 	renderTrees(view, proj);
 	WrapUpFrame(start_time);
+}
+
+void Application::ApplyEffect()
+{
+	// make sure we clear the framebuffer's content
+    glClearColor(skyColour.x, skyColour.y, skyColour.z, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	effectSphere.draw(m_camera.getView(), m_camera.getProjection(), effectMaterial);
+
 }
 
 void Application::WrapUpFrame(double start_time){

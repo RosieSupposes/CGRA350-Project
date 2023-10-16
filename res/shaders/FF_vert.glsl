@@ -2,7 +2,8 @@
 
 // uniform data
 uniform mat4 uProjectionMatrix;
-uniform mat4 uModelViewMatrix;
+uniform mat4 uViewMatrix;
+uniform mat4 uModelMatrix;
 uniform vec3 uColor;
 uniform float uBrightness;
 uniform sampler2D texture;
@@ -22,11 +23,12 @@ out VertexData {
 } v_out;
 
 void main() {
-	// transform vertex data to viewspace
-	v_out.position = (uModelViewMatrix * vec4(aPosition, 1)).xyz;
-	v_out.normal = normalize((uModelViewMatrix * vec4(aNormal, 0)).xyz);
-	v_out.textureCoord = aTexCoord;
 
+	// transform vertex data to viewspace
+	v_out.position = (uViewMatrix * uModelMatrix * vec4(aPosition, 1)).xyz;
+	v_out.normal = normalize((uViewMatrix * uModelMatrix * vec4(aNormal, 0)).xyz);
+ 	v_out.textureCoord = aTexCoord;
+ 
 	// set the screenspace position (needed for converting to fragment data)
-	gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1);
+	gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aPosition, 1);
 }
